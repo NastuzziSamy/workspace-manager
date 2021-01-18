@@ -1,0 +1,14 @@
+.desk-label-active, .desk-label-inactive {
+	margin-left: 3px;
+	margin-right: 3px;
+}
+
+.desk-label-active {
+	color: rgba(204, 204, 204, 1);
+}
+
+.desk-label-inactive {
+	color: rgba(156, 156, 156, 0.5);
+	/* color: rgba(26, 165, 153, 0.5); */
+}
+
