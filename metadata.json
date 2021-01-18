@@ -1,0 +1,8 @@
+{
+  "name": "Workspace Manager",
+  "description": "Define workspace keybindings, workspace number...",
+  "uuid": "workspace-manager@nastuzzisamy.github.com",
+  "shell-version": [
+    "3.38"
+  ]
+}
