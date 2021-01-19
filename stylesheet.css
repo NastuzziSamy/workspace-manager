@@ -8,10 +8,10 @@
 }
 
 .workspace-inactive {
-	color: rgba(156, 156, 156, 0.5);
+	color: rgba(156, 156, 156, 0.2);
 }
 
-.workspace-full {
-	background-color: rgba(156, 156, 156, 0.5);
+.workspace-inactive.workspace-full {
+	color: rgba(156, 156, 156, 0.5);
 }
 
