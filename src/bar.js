@@ -1,4 +1,4 @@
-const { Clutter, Gio, GObject, St } = imports.gi;
+const { Clutter, Meta, Gio, GObject, St } = imports.gi;
 const PanelMenu = imports.ui.panelMenu;
 const Main = imports.ui.main;
 
@@ -25,7 +25,7 @@ const WMBar = GObject.registerClass(
         }
     
         destroy() {
-            global.display.disconnect(this.wsWindowCreateSignal);
+            global.display.disconnect(this.windowCreateSignal);
             global.workspace_manager.disconnect(this.wsActiveSignal);
             global.workspace_manager.disconnect(this.wsNumberSignal);
             this.wsSettings.disconnect(this.wsNamesSignal);
@@ -46,7 +46,8 @@ const WMBar = GObject.registerClass(
                 }
             });
 
-            this.wsWindowCreateSignal = global.display.connect('window-created', () => this.updateWorkspaceWindows());
+            this.windowCreateSignal = global.display.connect('window-created', () => this.updateWorkspaceWindows());
+            this.windowGrabEndSignal = global.display.connect('grab-op-end', (_, display, metaWindow, op) => this.moveActiveGrabbedWindow(metaWindow, op));
             this.wsNumberSignal = global.workspace_manager.connect('notify::n-workspaces', () => this.updateWorkspaces());
             this.wsActiveSignal = global.workspace_manager.connect('active-workspace-changed', () => this.updateActiveWorkspace());
 
@@ -146,6 +147,58 @@ const WMBar = GObject.registerClass(
             }
 
             this.selectWs((this.activeWsIndex + 1) % this.wsCount);
+        }
+
+        getGlobalPosition() {
+            let position = this.get_position();
+            let parent = this.get_parent();
+
+            while (parent) {
+                position[0] += parent.get_position()[0];
+                position[1] += parent.get_position()[1];
+
+                parent = parent.get_parent();
+            }
+
+            return position;
+        }
+
+        getWorkspaceIndexUnderCursor() {
+            const [posX, posY] = this.getGlobalPosition();
+            const [width, height] = this.get_size();
+            const [pointerX, pointerY] = global.get_pointer();
+
+            if (pointerX < posX || pointerX > (posX + width) 
+                || pointerY < posY || pointerY > (posY + height)) {
+                    return null;
+            }
+
+            const children = this.layout.get_children();
+            const [relativeX, relativeY] = [pointerX - posX, pointerY - posY];
+
+            for (const key in children) {
+                const workspaceBin = children[key];
+                const [binX, binY] = workspaceBin.get_position();
+                const [binWidth, binHeight] = workspaceBin.get_size();
+
+                if (relativeX > binX && relativeX < (binX + binWidth) 
+                   && relativeY > binY && relativeY < (binY + binHeight)) {
+                    return key;
+                }
+            }
+        }
+
+        moveActiveGrabbedWindow(metaWindow, op) {
+            if (op === Meta.GrabOp.MOVING) {
+                const wsIndex = this.getWorkspaceIndexUnderCursor();
+
+                if (wsIndex >= 0) {
+                    metaWindow.change_workspace_by_index(wsIndex, true);
+
+                    global.display.get_workspace_manager().get_workspace_by_index(wsIndex)
+                        .activate_with_focus(metaWindow, global.get_current_time());
+                }
+            }
         }
     }
 );
