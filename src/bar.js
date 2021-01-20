@@ -2,11 +2,11 @@ const { Clutter, Meta, Gio, GObject, St } = imports.gi;
 const PanelMenu = imports.ui.panelMenu;
 const Main = imports.ui.main;
 
-var WORKSPACES_SCHEMA = "org.gnome.desktop.wm.preferences";
-var WORKSPACES_KEY = "workspace-names";
+const WORKSPACES_SCHEMA = "org.gnome.desktop.wm.preferences";
+const WORKSPACES_KEY = "workspace-names";
 
 
-const WMBar = GObject.registerClass(
+var WMBar = GObject.registerClass(
     class WMBar extends PanelMenu.Button {
         _init() {
             super._init(0.0, 'WMbar');
@@ -14,12 +14,12 @@ const WMBar = GObject.registerClass(
             this.wsSettings = new Gio.Settings({ schema: WORKSPACES_SCHEMA });
         
             this.layout = new St.BoxLayout({});
+            this.add_child(this.layout);
 
             this.updateWorkspaces(false);
             this.updateActiveWorkspace(false);
             this.updateWorkspaceNames(false);
             this.updateWorkspaceWindows();
-            this.add_child(this.layout);
 
             this.setSignals();
         }
@@ -47,7 +47,7 @@ const WMBar = GObject.registerClass(
             });
 
             this.windowCreateSignal = global.display.connect('window-created', () => this.updateWorkspaceWindows());
-            this.windowGrabEndSignal = global.display.connect('grab-op-end', (_, display, metaWindow, op) => this.moveActiveGrabbedWindow(metaWindow, op));
+            this.windowGrabEndSignal = global.display.connect('grab-op-end', (_0, _1, metaWindow, op) => this.moveActiveGrabbedWindow(metaWindow, op));
             this.wsNumberSignal = global.workspace_manager.connect('notify::n-workspaces', () => this.updateWorkspaces());
             this.wsActiveSignal = global.workspace_manager.connect('active-workspace-changed', () => this.updateActiveWorkspace());
 
@@ -192,7 +192,7 @@ const WMBar = GObject.registerClass(
             if (op === Meta.GrabOp.MOVING) {
                 const wsIndex = this.getWorkspaceIndexUnderCursor();
 
-                if (wsIndex >= 0) {
+                if (wsIndex !== null) {
                     metaWindow.change_workspace_by_index(wsIndex, true);
 
                     global.display.get_workspace_manager().get_workspace_by_index(wsIndex)
