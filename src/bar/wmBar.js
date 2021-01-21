@@ -1,5 +1,6 @@
 const { Clutter, Meta, Gio, GObject, St } = imports.gi;
 const PanelMenu = imports.ui.panelMenu;
+const PopupMenu = imports.ui.popupMenu;
 const Main = imports.ui.main;
 
 const WORKSPACES_SCHEMA = "org.gnome.desktop.wm.preferences";
@@ -9,7 +10,7 @@ const WORKSPACES_KEY = "workspace-names";
 var WMBar = GObject.registerClass(
     class WMBar extends PanelMenu.Button {
         _init() {
-            super._init(0.0, 'WMbar');
+            super._init(0.5, 'WMbar');
             
             this.wsSettings = new Gio.Settings({ schema: WORKSPACES_SCHEMA });
         
@@ -22,6 +23,7 @@ var WMBar = GObject.registerClass(
             this.updateWorkspaceWindows();
 
             this.setSignals();
+            this.createMenu();
         }
     
         destroy() {
@@ -52,6 +54,15 @@ var WMBar = GObject.registerClass(
             this.wsActiveSignal = global.workspace_manager.connect('active-workspace-changed', () => this.updateActiveWorkspace());
 
             this.wsNamesSignal = this.wsSettings.connect(`changed::${WORKSPACES_KEY}`, () => this.updateWorkspaceNames());
+        }
+
+        createMenu() {
+            this.menuItem = new PopupMenu.PopupMenuItem('');
+            this.menu.addMenuItem(this.menuItem);
+        }
+
+        prepareMenu(index) {
+            this.menuItem.label.set_text('Menu for WS ' + (index + 1));
         }
         
         updateWorkspaces(reload=true) {
@@ -127,12 +138,36 @@ var WMBar = GObject.registerClass(
                 }
 
                 wsBox.set_child(wsBox.label);
-                wsBox.connect('button-press-event', () => this.selectWs(index));
+                wsBox.connect('button-press-event', (_, event) => this.workspacePressed(event, index));
                 
                 this.layout.add_actor(wsBox);
             };
         }
     
+        workspacePressed(event, index) {
+            if (event.get_button() !== 1) {
+                this.prepareMenu(index);
+
+                if (this.menuIndex !== index) {
+                    this.menuIndex = index;
+
+                    if (this.menu.actor.is_visible()) {
+                        return Clutter.EVENT_STOP;
+                    }
+                }
+
+                return Clutter.EVENT_PROPAGATE;
+            }
+
+            if (this.menu.actor.is_visible()) {
+                this.menu.toggle();
+            }
+
+            this.selectWs(index);
+
+            return Clutter.EVENT_STOP;
+        }
+
         selectWs(index) {
             if (global.workspace_manager.get_active_workspace_index() === index) {
                 Main.overview.toggle();

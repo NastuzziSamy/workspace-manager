@@ -1,9 +1,9 @@
 const Main = imports.ui.main;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 
-const { WMBar, ActivitiesBarHidder } = Me.imports.src.bar;
-
-class Extension {
+const { ActivitiesBarHidder } = Me.imports.src.bar.activitiesHidder;
+const { WMBar } = Me.imports.src.bar.wmBar;
+var Extension = class {
     enable() {
         this.bar = new WMBar();
         this.activitiesHidder = new ActivitiesBarHidder();
@@ -15,4 +15,4 @@ class Extension {
         this.bar.destroy();
         this.activitiesHidder.destroy();
     }
-}
+};
