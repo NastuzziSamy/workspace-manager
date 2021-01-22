@@ -24,12 +24,23 @@ var getPreferedApp = (index) => {
     if (preferedWorkspaceApp) {
         return Shell.AppSystem.get_default().lookup_app(preferedWorkspaceApp);
     }
-}
+};
 
 var openPreferedApp = (index) => {
     const app = getPreferedApp(index);
 
     if (app) {
         openNewWindow(app);
+    }
+};
+
+var closeWindow = (window) => window.delete(global.get_current_time());
+
+var closeAllWindows = (index) => {
+    const workspace = global.workspace_manager.get_workspace_by_index(index);
+    const windows = workspace.list_windows();
+
+    for (const key in windows) {
+        closeWindow(windows[key]);
     }
 }
