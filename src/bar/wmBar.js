@@ -2,6 +2,9 @@ const { Clutter, Meta, Gio, GObject, St } = imports.gi;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Main = imports.ui.main;
+const Me = imports.misc.extensionUtils.getCurrentExtension();
+
+const { getPreferedApp, openNewWindow, focusWindow, openPreferedApp } = Me.imports.src.manager.app;
 
 const WORKSPACES_SCHEMA = "org.gnome.desktop.wm.preferences";
 const WORKSPACES_KEY = "workspace-names";
@@ -57,17 +60,42 @@ var WMBar = GObject.registerClass(
         }
 
         createMenu() {
-            this.menuWorkspaceItem = new PopupMenu.PopupMenuItem('Espace de travail');
+            this.menuWorkspaceItem = new PopupMenu.PopupSeparatorMenuItem('Espace de travail');
             this.menu.addMenuItem(this.menuWorkspaceItem);
+            this.menuQuickSection = new PopupMenu.PopupMenuSection();
+            this.menu.addMenuItem(this.menuQuickSection);
 
-            this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem('Applications lancées'));
+            this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             this.menuAppSection = new PopupMenu.PopupMenuSection();
             this.menu.addMenuItem(this.menuAppSection);
+        
+            this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            this.menu.addMenuItem(new PopupMenu.PopupMenuItem('Tout fermer'));
+
+            this.prepareMenu(0);
         }
 
         prepareMenu(index) {
             this.menuWorkspaceItem.label.set_text('Espace de travail n°' + (index + 1));
 
+            this.prepareMenuQuickSection(index);
+            this.prepareMenuOpenApps(index);
+        }
+
+        prepareMenuQuickSection(index) {
+            this.menuQuickSection.actor.destroy_all_children();
+
+            const app = getPreferedApp(index);
+            if (!app) return;
+            
+            const menuItem = new PopupMenu.PopupMenuItem('Lancer ' + app.get_name());
+
+            menuItem.connect('activate', () => openNewWindow(app));
+
+            this.menuQuickSection.addMenuItem(menuItem);
+        }
+
+        prepareMenuOpenApps(index) {
             this.menuAppSection.actor.destroy_all_children();
 
             const workspace = global.workspace_manager.get_workspace_by_index(index);
@@ -77,7 +105,7 @@ var WMBar = GObject.registerClass(
                 const window = windows[key];
                 const menuItem = new PopupMenu.PopupMenuItem(window.get_title());
 
-                menuItem.connect('activate', () => window.activate(global.get_current_time()));
+                menuItem.connect('activate', () => focusWindow(window));
 
                 this.menuAppSection.addMenuItem(menuItem);
             }
@@ -179,7 +207,13 @@ var WMBar = GObject.registerClass(
 
 
                 case 2:
+                    if (this.menu.actor.is_visible()) {
+                        this.menu.toggle();
+                    }
+
+                    openPreferedApp(index);
                     
+                    return Clutter.EVENT_STOP;
 
                 case 3:
                 default:
