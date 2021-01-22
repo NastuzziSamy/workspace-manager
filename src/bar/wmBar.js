@@ -57,12 +57,30 @@ var WMBar = GObject.registerClass(
         }
 
         createMenu() {
-            this.menuItem = new PopupMenu.PopupMenuItem('');
-            this.menu.addMenuItem(this.menuItem);
+            this.menuWorkspaceItem = new PopupMenu.PopupMenuItem('Espace de travail');
+            this.menu.addMenuItem(this.menuWorkspaceItem);
+
+            this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem('Applications lancées'));
+            this.menuAppSection = new PopupMenu.PopupMenuSection();
+            this.menu.addMenuItem(this.menuAppSection);
         }
 
         prepareMenu(index) {
-            this.menuItem.label.set_text('Menu for WS ' + (index + 1));
+            this.menuWorkspaceItem.label.set_text('Espace de travail n°' + (index + 1));
+
+            this.menuAppSection.actor.destroy_all_children();
+
+            const workspace = global.workspace_manager.get_workspace_by_index(index);
+            const windows = workspace.list_windows();
+
+            for (const key in windows) {
+                const window = windows[key];
+                const menuItem = new PopupMenu.PopupMenuItem(window.get_title());
+
+                menuItem.connect('activate', () => window.activate(global.get_current_time()));
+
+                this.menuAppSection.addMenuItem(menuItem);
+            }
         }
         
         updateWorkspaces(reload=true) {
