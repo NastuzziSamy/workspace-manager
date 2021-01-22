@@ -145,27 +145,34 @@ var WMBar = GObject.registerClass(
         }
     
         workspacePressed(event, index) {
-            if (event.get_button() !== 1) {
-                this.prepareMenu(index);
+            switch (event.get_button()) {
+                case 3:
+                    this.prepareMenu(index);
 
-                if (this.menuIndex !== index) {
-                    this.menuIndex = index;
+                    if (this.menuIndex !== index) {
+                        this.menuIndex = index;
 
-                    if (this.menu.actor.is_visible()) {
-                        return Clutter.EVENT_STOP;
+                        if (this.menu.actor.is_visible()) {
+                            return Clutter.EVENT_STOP;
+                        }
                     }
-                }
 
-                return Clutter.EVENT_PROPAGATE;
+                    return Clutter.EVENT_PROPAGATE;
+
+
+                case 2:
+                    
+
+                case 3:
+                default:
+                    if (this.menu.actor.is_visible()) {
+                        this.menu.toggle();
+                    }
+
+                    this.selectWs(index);
+
+                    return Clutter.EVENT_STOP;
             }
-
-            if (this.menu.actor.is_visible()) {
-                this.menu.toggle();
-            }
-
-            this.selectWs(index);
-
-            return Clutter.EVENT_STOP;
         }
 
         selectWs(index) {
