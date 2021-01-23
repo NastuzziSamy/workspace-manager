@@ -4,6 +4,7 @@ const PopupMenu = imports.ui.popupMenu;
 const Main = imports.ui.main;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 
+const { MenuWindowItem } = Me.imports.src.bar.menuWindowItem;
 const helper = Me.imports.src.helper;
 
 const WORKSPACES_SCHEMA = "org.gnome.desktop.wm.preferences";
@@ -73,18 +74,18 @@ var WMBar = GObject.registerClass(
                 new PopupMenu.PopupSeparatorMenuItem('Espace de travail n°' + (index + 1))
             );
 
-            if (this.addMenuQuickSection(index)) {
+            if (this.setMenuQuickSection(index)) {
                 this.menuSection.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             }
 
-            if (this.addMenuOpenApps(index)) {
+            if (this.setMenuOpenedWindows(index)) {
                 this.menuSection.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             }
 
-            this.addMenuCloseApps(index);
+            this.setMenuCloseWindows(index);
         }
 
-        addMenuQuickSection(index) {
+        setMenuQuickSection(index) {
             const app = helper.getPreferedApp(index);
             if (!app) return false;
             
@@ -99,27 +100,35 @@ var WMBar = GObject.registerClass(
             return true;
         }
 
-        addMenuOpenApps(index) {
-            const workspace = global.workspace_manager.get_workspace_by_index(index);
-            if (!workspace || workspace.n_windows === 0) return false;
-
-            const menuAppSection = new PopupMenu.PopupMenuSection();
-            this.menuSection.addMenuItem(menuAppSection);
+        generateMenuWindows(workspace, section, withoutWindow) {
+            section.actor.destroy_all_children();
 
             const windows = workspace.list_windows();
 
             for (const key in windows) {
                 const window = windows[key];
-                const menuItem = new PopupMenu.PopupMenuItem(window.get_title());
-                menuItem.connect('activate', () => helper.focusWindow(window));
+                if (window === withoutWindow) continue;
 
-                menuAppSection.addMenuItem(menuItem);
+                const windowItem = new MenuWindowItem(window);
+                windowItem.closeButton.connect('clicked', () => this.generateMenuWindows(workspace, section, window));
+
+                section.addMenuItem(windowItem);
             }
+        }
+
+        setMenuOpenedWindows(index) {
+            const workspace = global.workspace_manager.get_workspace_by_index(index);
+            if (!workspace || workspace.n_windows === 0) return false;
+
+            const menuWindowSection = new PopupMenu.PopupMenuSection();
+            this.menuSection.addMenuItem(menuWindowSection);
+
+            this.generateMenuWindows(workspace, menuWindowSection);
 
             return true;
         }
 
-        addMenuCloseApps(index) {
+        setMenuCloseWindows(index) {
             const workspace = global.workspace_manager.get_workspace_by_index(index);
             if (!workspace) return false;
 

@@ -20,9 +20,10 @@ var focusWindow = (window) => window.activate(global.get_current_time());
 
 var getPreferedApp = (index) => {
     const preferedWorkspaceApp = WORKSPACE_APPS[index];
-    if (!preferedWorkspaceApp) return;
+    const appSystem = Shell.AppSystem.get_default();
+    if (!preferedWorkspaceApp || !appSystem) return;
 
-    return Shell.AppSystem.get_default().lookup_app(preferedWorkspaceApp);
+    return appSystem.lookup_app(preferedWorkspaceApp);
 };
 
 var openPreferedApp = (index) => {
@@ -30,6 +31,13 @@ var openPreferedApp = (index) => {
     if (!app) return;
 
     openNewWindow(app);
+};
+
+var getWindowApp = (window) => {
+    const windowTracker = Shell.WindowTracker.get_default();
+    if (!windowTracker) return;
+
+    return windowTracker.get_window_app(window);
 };
 
 var closeWindow = (window) => window.delete(global.get_current_time());
