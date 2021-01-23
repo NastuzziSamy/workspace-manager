@@ -4,7 +4,7 @@ const PopupMenu = imports.ui.popupMenu;
 const Main = imports.ui.main;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 
-const { getPreferedApp, openNewWindow, focusWindow, openPreferedApp } = Me.imports.src.manager.app;
+const helper = Me.imports.src.helper;
 
 const WORKSPACES_SCHEMA = "org.gnome.desktop.wm.preferences";
 const WORKSPACES_KEY = "workspace-names";
@@ -60,55 +60,87 @@ var WMBar = GObject.registerClass(
         }
 
         createMenu() {
-            this.menuWorkspaceItem = new PopupMenu.PopupSeparatorMenuItem('Espace de travail');
-            this.menu.addMenuItem(this.menuWorkspaceItem);
-            this.menuQuickSection = new PopupMenu.PopupMenuSection();
-            this.menu.addMenuItem(this.menuQuickSection);
-
-            this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-            this.menuAppSection = new PopupMenu.PopupMenuSection();
-            this.menu.addMenuItem(this.menuAppSection);
+            this.menuSection = new PopupMenu.PopupMenuSection();
+            this.menu.addMenuItem(this.menuSection);
         
-            this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-            this.menu.addMenuItem(new PopupMenu.PopupMenuItem('Tout fermer'));
-
             this.prepareMenu(0);
         }
 
         prepareMenu(index) {
-            this.menuWorkspaceItem.label.set_text('Espace de travail n°' + (index + 1));
+            this.menuSection.actor.destroy_all_children();
 
-            this.prepareMenuQuickSection(index);
-            this.prepareMenuOpenApps(index);
+            this.menuSection.addMenuItem(
+                new PopupMenu.PopupSeparatorMenuItem('Espace de travail n°' + (index + 1))
+            );
+
+            if (this.addMenuQuickSection(index)) {
+                this.menuSection.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            }
+
+            if (this.addMenuOpenApps(index)) {
+                this.menuSection.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+            }
+
+            this.addMenuCloseApps(index);
         }
 
-        prepareMenuQuickSection(index) {
-            this.menuQuickSection.actor.destroy_all_children();
-
-            const app = getPreferedApp(index);
-            if (!app) return;
+        addMenuQuickSection(index) {
+            const app = helper.getPreferedApp(index);
+            if (!app) return false;
             
+            const menuQuickSection = new PopupMenu.PopupMenuSection();
+            this.menuSection.addMenuItem(menuQuickSection);
+
             const menuItem = new PopupMenu.PopupMenuItem('Lancer ' + app.get_name());
+            menuItem.connect('activate', () => helper.openNewWindow(app));
 
-            menuItem.connect('activate', () => openNewWindow(app));
+            menuQuickSection.addMenuItem(menuItem);
 
-            this.menuQuickSection.addMenuItem(menuItem);
+            return true;
         }
 
-        prepareMenuOpenApps(index) {
-            this.menuAppSection.actor.destroy_all_children();
-
+        addMenuOpenApps(index) {
             const workspace = global.workspace_manager.get_workspace_by_index(index);
+            if (!workspace || workspace.n_windows === 0) return false;
+
+            const menuAppSection = new PopupMenu.PopupMenuSection();
+            this.menuSection.addMenuItem(menuAppSection);
+
             const windows = workspace.list_windows();
 
             for (const key in windows) {
                 const window = windows[key];
                 const menuItem = new PopupMenu.PopupMenuItem(window.get_title());
+                menuItem.connect('activate', () => helper.focusWindow(window));
 
-                menuItem.connect('activate', () => focusWindow(window));
-
-                this.menuAppSection.addMenuItem(menuItem);
+                menuAppSection.addMenuItem(menuItem);
             }
+
+            return true;
+        }
+
+        addMenuCloseApps(index) {
+            const workspace = global.workspace_manager.get_workspace_by_index(index);
+            if (!workspace) return false;
+
+            const menuCloseSection = new PopupMenu.PopupMenuSection();
+            this.menuSection.addMenuItem(menuCloseSection);
+            
+            if (workspace.n_windows === 0) {
+                const menuItem = new PopupMenu.PopupMenuItem('Supprimer l\'espace de travail');
+                menuItem.connect('activate', () => helper.removeWorkspace(index));
+    
+                menuCloseSection.addMenuItem(menuItem);
+
+                return true;
+            }
+
+            const menuItem = new PopupMenu.PopupMenuItem('Tout fermer');
+            menuItem.connect('activate', () => helper.closeAllWindows(index));
+
+            menuCloseSection.addMenuItem(menuItem);
+
+            return true;
         }
         
         updateWorkspaces(reload=true) {
@@ -211,7 +243,7 @@ var WMBar = GObject.registerClass(
                         this.menu.toggle();
                     }
 
-                    openPreferedApp(index);
+                    helper.openPreferedApp(index);
                     
                     return Clutter.EVENT_STOP;
 

@@ -20,27 +20,34 @@ var focusWindow = (window) => window.activate(global.get_current_time());
 
 var getPreferedApp = (index) => {
     const preferedWorkspaceApp = WORKSPACE_APPS[index];
+    if (!preferedWorkspaceApp) return;
 
-    if (preferedWorkspaceApp) {
-        return Shell.AppSystem.get_default().lookup_app(preferedWorkspaceApp);
-    }
+    return Shell.AppSystem.get_default().lookup_app(preferedWorkspaceApp);
 };
 
 var openPreferedApp = (index) => {
     const app = getPreferedApp(index);
+    if (!app) return;
 
-    if (app) {
-        openNewWindow(app);
-    }
+    openNewWindow(app);
 };
 
 var closeWindow = (window) => window.delete(global.get_current_time());
 
 var closeAllWindows = (index) => {
     const workspace = global.workspace_manager.get_workspace_by_index(index);
+    if (!workspace) return;
+
     const windows = workspace.list_windows();
 
     for (const key in windows) {
         closeWindow(windows[key]);
     }
+}
+
+var removeWorkspace = (index) => {
+    const workspace = global.workspace_manager.get_workspace_by_index(index);
+    if (!workspace) return;
+
+    global.workspace_manager.removeWorkspace(workspace, global.get_current_time());
 }
