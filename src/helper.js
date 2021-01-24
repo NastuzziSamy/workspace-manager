@@ -18,6 +18,43 @@ var openNewWindow = (app) => app.open_new_window(global.get_current_time());
 
 var focusWindow = (window) => window.activate(global.get_current_time());
 
+var getWindows = (workspace) => {
+    return workspace.list_windows().filter((window) => {
+        return !window.is_always_on_all_workspaces() && !window.is_on_all_workspaces();
+    });
+};
+
+var getFocusedWindow = (workspace) => {
+    const windows = getWindows(workspace);
+
+    for (const key in windows) {
+        const window = windows[key];
+
+        if (window.appears_focused) {
+            return window;
+        }
+    }
+};
+
+var getWindowsByApp = (workspace) => {
+    const byApps = {};
+    const windows = getWindows(workspace);
+
+    for (const key in windows) {
+        const window = windows[key];
+        const app = getWindowApp(window);
+        const appName = app.get_name();
+
+        if (byApps[appName]) {
+            byApps[appName].push(window);
+        } else {
+            byApps[appName] = [window];
+        }
+    }
+
+    return byApps;
+};
+
 var getPreferedApp = (index) => {
     const preferedWorkspaceApp = WORKSPACE_APPS[index];
     const appSystem = Shell.AppSystem.get_default();
@@ -57,5 +94,5 @@ var removeWorkspace = (index) => {
     const workspace = global.workspace_manager.get_workspace_by_index(index);
     if (!workspace) return;
 
-    global.workspace_manager.removeWorkspace(workspace, global.get_current_time());
+    global.workspace_manager.remove_workspace(workspace, global.get_current_time());
 }

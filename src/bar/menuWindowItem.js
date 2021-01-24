@@ -8,13 +8,16 @@ const helper = Me.imports.src.helper;
 var MenuWindowItem = GObject.registerClass(
     class MenuWindowItem extends PopupMenu.PopupBaseMenuItem {
         _init(window) {
-            super._init();
-
             this.window = window;
             this.app = helper.getWindowApp(this.window);
 
+            super._init(this.window.appears_focused ? {
+                style_class: 'popup-menu-window-focused',
+            } : {});
+
             this.label = new St.Label({
                 text: this.window.get_title(),
+                style_class: 'popup-menu-window-title',
                 x_expand: true,
                 y_align: Clutter.ActorAlign.CENTER,
             });
@@ -30,7 +33,7 @@ var MenuWindowItem = GObject.registerClass(
             });
             this.closeButton.connect('clicked', () => this.closeWindow());
             this.add_child(this.closeButton);
-
+            
             this.connect('activate', () => this.focusWindow());
         }
 

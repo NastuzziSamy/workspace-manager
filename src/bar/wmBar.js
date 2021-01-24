@@ -55,6 +55,7 @@ var WMBar = GObject.registerClass(
             this.windowCreateSignal = global.display.connect('window-created', () => this.updateWorkspaceWindows());
             this.windowGrabEndSignal = global.display.connect('grab-op-end', (_0, _1, metaWindow, op) => this.moveActiveGrabbedWindow(metaWindow, op));
             this.wsNumberSignal = global.workspace_manager.connect('notify::n-workspaces', () => this.updateWorkspaces());
+            this.wsSizeSignal = global.window_manager.connect('size-changed', () => this.updateWorkspaces());
             this.wsActiveSignal = global.workspace_manager.connect('active-workspace-changed', () => this.updateActiveWorkspace());
 
             this.wsNamesSignal = this.wsSettings.connect(`changed::${WORKSPACES_KEY}`, () => this.updateWorkspaceNames());
@@ -103,16 +104,30 @@ var WMBar = GObject.registerClass(
         generateMenuWindows(workspace, section, withoutWindow) {
             section.actor.destroy_all_children();
 
-            const windows = workspace.list_windows();
+            const windowsByApp = helper.getWindowsByApp(workspace);
+            const keys = Object.keys(windowsByApp).sort();
 
-            for (const key in windows) {
-                const window = windows[key];
-                if (window === withoutWindow) continue;
+            for (const key in keys) {
+                const appName = keys[key];
+                const windows = windowsByApp[appName].sort((windowA, windowB) => {
+                    windowB.get_title() - windowA.get_title();
+                });
 
-                const windowItem = new MenuWindowItem(window);
-                windowItem.closeButton.connect('clicked', () => this.generateMenuWindows(workspace, section, window));
+                if (windows.length === 1 && windows === [withoutWindow]) {
+                    continue;
+                }
 
-                section.addMenuItem(windowItem);
+                section.addMenuItem(new PopupMenu.PopupSeparatorMenuItem(appName));
+
+                for (const subKey in windows) {
+                    const window = windows[subKey];
+                    if (window === withoutWindow) continue;
+
+                    const windowItem = new MenuWindowItem(window);
+                    windowItem.closeButton.connect('clicked', () => this.generateMenuWindows(workspace, section, window));
+    
+                    section.addMenuItem(windowItem);
+                }
             }
         }
 
@@ -137,7 +152,11 @@ var WMBar = GObject.registerClass(
             
             if (workspace.n_windows === 0) {
                 const menuItem = new PopupMenu.PopupMenuItem('Supprimer l\'espace de travail');
-                menuItem.connect('activate', () => helper.removeWorkspace(index));
+                menuItem.connect('activate', () => {
+                    helper.removeWorkspace(index);
+
+                    this.updateWorkspaceList();
+                });
     
                 menuCloseSection.addMenuItem(menuItem);
 
@@ -189,9 +208,7 @@ var WMBar = GObject.registerClass(
             for (let index = 0; index < global.workspace_manager.get_n_workspaces(); index++) {
                 const workspace = global.workspace_manager.get_workspace_by_index(index);
 
-                this.msWindows[index] = workspace.list_windows().filter((window) => {
-                    return !window.is_always_on_all_workspaces() && !window.is_on_all_workspaces();
-                });
+                this.msWindows[index] = helper.getWindows(workspace);
             }
 
             if (reload) {
@@ -212,7 +229,7 @@ var WMBar = GObject.registerClass(
                     wsBox.label.style_class = 'workspace-inactive';
                 }
 
-                if (this.msWindows[index].length === 0) {
+                if (!this.msWindows[index] || this.msWindows[index].length === 0) {
                     wsBox.label.style_class += ' workspace-empty';
                 } else {
                     wsBox.label.style_class += ' workspace-full';
@@ -221,7 +238,7 @@ var WMBar = GObject.registerClass(
                 if (this.wsNames[index]) {
                     wsBox.label.set_text(this.wsNames[index]);
                 } else {
-                    wsBox.label.set_text((index + 1));
+                    wsBox.label.set_text((index + 1) + '');
                 }
 
                 wsBox.set_child(wsBox.label);
@@ -337,36 +354,3 @@ var WMBar = GObject.registerClass(
         }
     }
 );
-
-
-class ActivitiesBarHidder {
-    constructor() {
-        this.activitiesContainer = Main.panel?.statusArea['activities']?.container;
-
-        this.hide();
-    }
-
-    hide() {
-        if (this.activitiesContainer) {
-            this.activitesShown = this.activitiesContainer.is_visible();
-        } else {
-            this.activitesShown = false;
-        }
-
-        this.show(false);
-    }
-
-    show(status) {
-        if (this.activitiesContainer) {
-            if (!Main.sessionMode.isLocked && status) {
-                this.activitiesContainer.show();
-            } else {
-                this.activitiesContainer.hide();
-            }
-        }
-    }
-
-    destroy() {
-        this.show(this.activitesShown);
-    }
-}
