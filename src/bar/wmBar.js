@@ -51,9 +51,10 @@ var WMBar = GObject.registerClass(
                         break;
                 }
             });
-
+            
             this.windowCreateSignal = global.display.connect('window-created', () => this.updateWorkspaceWindows());
-            this.windowGrabEndSignal = global.display.connect('grab-op-end', (_0, _1, metaWindow, op) => this.moveActiveGrabbedWindow(metaWindow, op));
+            this.windowGrabEndSignal = global.display.connect('grab-op-end', (_0, _1, window, op) => (op === Meta.GrabOp.MOVING) && this.moveActiveGrabbedWindow(window, op));
+            this.windowDragEndSignal = Main.overview.connect('window-drag-end', (_, window) => this.moveActiveGrabbedWindow(window));
             this.wsNumberSignal = global.workspace_manager.connect('notify::n-workspaces', () => this.updateWorkspaces());
             this.wsSizeSignal = global.window_manager.connect('size-changed', () => this.updateWorkspaces());
             this.wsActiveSignal = global.workspace_manager.connect('active-workspace-changed', () => this.updateActiveWorkspace());
@@ -244,7 +245,7 @@ var WMBar = GObject.registerClass(
                 wsBox.set_child(wsBox.label);
                 wsBox.connect('button-press-event', (_, event) => this.workspacePressed(event, index));
                 
-                this.layout.add_actor(wsBox);
+                this.layout.add(wsBox);
             };
         }
     
@@ -322,34 +323,35 @@ var WMBar = GObject.registerClass(
 
             if (pointerX < posX || pointerX > (posX + width) 
                 || pointerY < posY || pointerY > (posY + height)) {
-                    return null;
+                    return;
             }
 
             const children = this.layout.get_children();
-            const [relativeX, relativeY] = [pointerX - posX, pointerY - posY];
+            const relativeX = pointerX - posX;
+            let binX = 0;
 
             for (const key in children) {
-                const workspaceBin = children[key];
-                const [binX, binY] = workspaceBin.get_position();
-                const [binWidth, binHeight] = workspaceBin.get_size();
+                const workspace = children[key];
+                const binWidth = workspace.get_width();
 
-                if (relativeX > binX && relativeX < (binX + binWidth) 
-                   && relativeY > binY && relativeY < (binY + binHeight)) {
+                if (relativeX >= binX && relativeX <= (binX + binWidth)) {
                     return key;
                 }
+
+                binX += binWidth;
             }
+
+            return;
         }
 
-        moveActiveGrabbedWindow(metaWindow, op) {
-            if (op === Meta.GrabOp.MOVING) {
-                const wsIndex = this.getWorkspaceIndexUnderCursor();
+        moveActiveGrabbedWindow(window) {
+            const wsIndex = this.getWorkspaceIndexUnderCursor();
 
-                if (wsIndex !== null) {
-                    metaWindow.change_workspace_by_index(wsIndex, true);
+            if (wsIndex >= 0) {
+                window.change_workspace_by_index(wsIndex, true);
 
-                    global.display.get_workspace_manager().get_workspace_by_index(wsIndex)
-                        .activate_with_focus(metaWindow, global.get_current_time());
-                }
+                global.display.get_workspace_manager().get_workspace_by_index(wsIndex)
+                    .activate_with_focus(window, global.get_current_time());
             }
         }
     }
