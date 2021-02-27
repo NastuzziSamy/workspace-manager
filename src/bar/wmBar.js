@@ -6,6 +6,7 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 
 const { MenuWindowItem } = Me.imports.src.bar.menuWindowItem;
 const helper = Me.imports.src.helper;
+const { SignalMixin } = Me.imports.src.mixins;
 
 const WORKSPACES_SCHEMA = "org.gnome.desktop.wm.preferences";
 const WORKSPACES_KEY = "workspace-names";
@@ -15,9 +16,9 @@ var WMBar = GObject.registerClass(
     class WMBar extends PanelMenu.Button {
         _init() {
             super._init(0.5, 'WMbar');
-            
+
             this.wsSettings = new Gio.Settings({ schema: WORKSPACES_SCHEMA });
-        
+
             this.layout = new St.BoxLayout({});
             this.add_child(this.layout);
 
@@ -26,21 +27,17 @@ var WMBar = GObject.registerClass(
             this.updateWorkspaceNames(false);
             this.updateWorkspaceWindows();
 
-            this.setSignals();
+            this.connectSignals();
             this.createMenu();
         }
-    
-        destroy() {
-            global.display.disconnect(this.windowCreateSignal);
-            global.workspace_manager.disconnect(this.wsActiveSignal);
-            global.workspace_manager.disconnect(this.wsNumberSignal);
-            this.wsSettings.disconnect(this.wsNamesSignal);
 
-            this.layout.destroy();
+        destroy() {
+            this.disconnectSignals();
+
             super.destroy();
         }
 
-        setSignals() {
+        connectSignals() {
             this.connect('scroll-event', (_, event) => {
                 const direction = event.get_scroll_direction();
 
@@ -51,21 +48,20 @@ var WMBar = GObject.registerClass(
                         break;
                 }
             });
-            
-            this.windowCreateSignal = global.display.connect('window-created', () => this.updateWorkspaceWindows());
-            this.windowGrabEndSignal = global.display.connect('grab-op-end', (_0, _1, window, op) => (op === Meta.GrabOp.MOVING) && this.moveActiveGrabbedWindow(window, op));
-            this.windowDragEndSignal = Main.overview.connect('window-drag-end', (_, window) => this.moveActiveGrabbedWindow(window));
-            this.wsNumberSignal = global.workspace_manager.connect('notify::n-workspaces', () => this.updateWorkspaces());
-            this.wsSizeSignal = global.window_manager.connect('size-changed', () => this.updateWorkspaces());
-            this.wsActiveSignal = global.workspace_manager.connect('active-workspace-changed', () => this.updateActiveWorkspace());
 
-            this.wsNamesSignal = this.wsSettings.connect(`changed::${WORKSPACES_KEY}`, () => this.updateWorkspaceNames());
+            this.connectSignal(global.display, 'window-created', () => this.updateWorkspaceWindows());
+            this.connectSignal(global.display, 'grab-op-end', (_0, _1, window, op) => (op === Meta.GrabOp.MOVING) && this.moveActiveGrabbedWindow(window, op));
+            this.connectSignal(Main.overview, 'window-drag-end', (_, window) => this.moveActiveGrabbedWindow(window));
+            this.connectSignal(global.workspace_manager, 'notify::n-workspaces', () => this.updateWorkspaces());
+            this.connectSignal(global.window_manager, 'size-changed', () => this.updateWorkspaces());
+            this.connectSignal(global.workspace_manager, 'active-workspace-changed', () => this.updateActiveWorkspace());
+            this.connectSignal(this.wsSettings, `changed::${WORKSPACES_KEY}`, () => this.updateWorkspaceNames());
         }
 
         createMenu() {
             this.menuSection = new PopupMenu.PopupMenuSection();
             this.menu.addMenuItem(this.menuSection);
-        
+
             this.prepareMenu(0);
         }
 
@@ -90,7 +86,7 @@ var WMBar = GObject.registerClass(
         setMenuQuickSection(index) {
             const app = helper.getPreferedApp(index);
             if (!app) return false;
-            
+
             const menuQuickSection = new PopupMenu.PopupMenuSection();
             this.menuSection.addMenuItem(menuQuickSection);
 
@@ -126,7 +122,7 @@ var WMBar = GObject.registerClass(
 
                     const windowItem = new MenuWindowItem(window);
                     windowItem.closeButton.connect('clicked', () => this.generateMenuWindows(workspace, section, window));
-    
+
                     section.addMenuItem(windowItem);
                 }
             }
@@ -150,7 +146,7 @@ var WMBar = GObject.registerClass(
 
             const menuCloseSection = new PopupMenu.PopupMenuSection();
             this.menuSection.addMenuItem(menuCloseSection);
-            
+
             if (workspace.n_windows === 0) {
                 const menuItem = new PopupMenu.PopupMenuItem('Supprimer l\'espace de travail');
                 menuItem.connect('activate', () => {
@@ -158,7 +154,7 @@ var WMBar = GObject.registerClass(
 
                     this.updateWorkspaceList();
                 });
-    
+
                 menuCloseSection.addMenuItem(menuItem);
 
                 return true;
@@ -171,7 +167,7 @@ var WMBar = GObject.registerClass(
 
             return true;
         }
-        
+
         updateWorkspaces(reload=true) {
             this.wsCount = global.workspace_manager.get_n_workspaces();
 
@@ -186,7 +182,7 @@ var WMBar = GObject.registerClass(
                 this.updateWorkspaceList();
             }
         }
-        
+
         updateActiveWorkspace(reload=true) {
             this.activeWsIndex = global.workspace_manager.get_active_workspace_index();
 
@@ -216,14 +212,14 @@ var WMBar = GObject.registerClass(
                 this.updateWorkspaceList();
             }
         }
-    
+
         updateWorkspaceList() {
             this.layout.destroy_all_children();
-            
+
             for (let index = 0; index < this.wsCount; ++index) {
-                const wsBox = new St.Bin({ visible: true, reactive: true, can_focus: true, track_hover: true });	
+                const wsBox = new St.Bin({ visible: true, reactive: true, can_focus: true, track_hover: true });
                 wsBox.label = new St.Label({ y_align: Clutter.ActorAlign.CENTER });
-                
+
                 if (index == this.activeWsIndex) {
                     wsBox.label.style_class = 'workspace-active';
                 } else {
@@ -244,11 +240,11 @@ var WMBar = GObject.registerClass(
 
                 wsBox.set_child(wsBox.label);
                 wsBox.connect('button-press-event', (_, event) => this.workspacePressed(event, index));
-                
-                this.layout.add(wsBox);
+
+                this.layout.add_child(wsBox);
             };
         }
-    
+
         workspacePressed(event, index) {
             switch (event.get_button()) {
                 case 3:
@@ -271,7 +267,7 @@ var WMBar = GObject.registerClass(
                     }
 
                     helper.openPreferedApp(index);
-                    
+
                     return Clutter.EVENT_STOP;
 
                 case 3:
@@ -290,10 +286,10 @@ var WMBar = GObject.registerClass(
             if (global.workspace_manager.get_active_workspace_index() === index) {
                 Main.overview.toggle();
             }
-            
+
             global.workspace_manager.get_workspace_by_index(index).activate(global.get_current_time());
         }
-    
+
         selectNextWs(previous) {
             if (previous) {
                 return this.selectWs(this.activeWsIndex === 0 ? (this.wsCount - 1) : (this.activeWsIndex - 1));
@@ -321,7 +317,7 @@ var WMBar = GObject.registerClass(
             const [width, height] = this.get_size();
             const [pointerX, pointerY] = global.get_pointer();
 
-            if (pointerX < posX || pointerX > (posX + width) 
+            if (pointerX < posX || pointerX > (posX + width)
                 || pointerY < posY || pointerY > (posY + height)) {
                     return;
             }
@@ -356,3 +352,5 @@ var WMBar = GObject.registerClass(
         }
     }
 );
+
+Object.assign(WMBar.prototype, SignalMixin);

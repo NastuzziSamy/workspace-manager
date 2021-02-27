@@ -4,19 +4,21 @@
 }
 
 .workspace-active {
-	color: rgba(204, 204, 204, 1);
+	color: rgba(224, 224, 224, 1);
+	/* color: rgb(161, 39, 39); */
 }
 
 .workspace-inactive {
-	color: rgba(156, 156, 156, 0.2);
+	color: rgba(156, 156, 156, 0.25);
 }
 
 .workspace-inactive.workspace-full {
-	color: rgba(156, 156, 156, 0.5);
+	color: rgba(156, 156, 156, 0.75);
 }
 
 .popup-menu-window-focused .popup-menu-window-title {
-	color:rgba(156, 156, 156, 0.75);
+	/* color:rgba(156, 156, 156, 0.75); */
+	/* color: rgba(143, 24, 24, 1); */
 }
 
 .popup-menu-window-focused,
