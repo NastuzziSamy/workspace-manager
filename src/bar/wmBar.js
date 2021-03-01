@@ -1,4 +1,4 @@
-const { Clutter, Meta, Gio, GObject, St } = imports.gi;
+const { Clutter, Meta, Gio, GLib, GObject, St } = imports.gi;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Main = imports.ui.main;
@@ -18,6 +18,9 @@ var WMBar = GObject.registerClass(
             super._init(0.5, 'WMbar');
 
             this.wsSettings = new Gio.Settings({ schema: WORKSPACES_SCHEMA });
+            this.wsWindows = [];
+            this.windowsNeedsAttention = [];
+            this.isDestroyed = false;
 
             this.layout = new St.BoxLayout({});
             this.add_child(this.layout);
@@ -32,6 +35,8 @@ var WMBar = GObject.registerClass(
         }
 
         destroy() {
+            this.isDestroyed = true;
+
             this.disconnectSignals();
 
             super.destroy();
@@ -49,13 +54,25 @@ var WMBar = GObject.registerClass(
                 }
             });
 
-            this.connectSignal(global.display, 'window-created', () => this.updateWorkspaceWindows());
+            this.connectSignal(global.display, 'window-demands-attention', (_, window) => this.windowNeedsFocus(window));
+            this.connectSignal(global.display, 'window-marked-urgent', (_, window) => this.windowNeedsFocus(window));
+            this.connectSignal(global.display, 'notify::focus-window', () => this.updateFocusedWindow());
             this.connectSignal(global.display, 'grab-op-end', (_0, _1, window, op) => (op === Meta.GrabOp.MOVING) && this.moveActiveGrabbedWindow(window, op));
             this.connectSignal(Main.overview, 'window-drag-end', (_, window) => this.moveActiveGrabbedWindow(window));
             this.connectSignal(global.workspace_manager, 'notify::n-workspaces', () => this.updateWorkspaces());
             this.connectSignal(global.window_manager, 'size-changed', () => this.updateWorkspaces());
             this.connectSignal(global.workspace_manager, 'active-workspace-changed', () => this.updateActiveWorkspace());
             this.connectSignal(this.wsSettings, `changed::${WORKSPACES_KEY}`, () => this.updateWorkspaceNames());
+
+            GLib.timeout_add(GLib.PRIORITY_DEFAULT, 50, () => {
+                if (!this.isDestroyed) {
+                    this.updateWorkspaceWindows();
+
+                    this.connectSignal(global.display, 'window-created', (_, window) => this.updateCreatedWindow(window));
+                }
+
+                return GLib.SOURCE_REMOVE;
+            });
         }
 
         createMenu() {
@@ -106,9 +123,7 @@ var WMBar = GObject.registerClass(
 
             for (const key in keys) {
                 const appName = keys[key];
-                const windows = windowsByApp[appName].sort((windowA, windowB) => {
-                    windowB.get_title() - windowA.get_title();
-                });
+                const windows = windowsByApp[appName].sort((windowA, windowB) => windowB.get_title() - windowA.get_title());
 
                 if (windows.length === 1 && windows === [withoutWindow]) {
                     continue;
@@ -168,6 +183,40 @@ var WMBar = GObject.registerClass(
             return true;
         }
 
+        windowNeedsFocus(window) {
+            if (this.windowsNeedsAttention.includes(window)
+                || !helper.isWindowOnOneWorkspace(window)
+                || helper.getFocusedWindow() === window) {
+                return;
+            }
+            log('a', window.title);
+
+            this.windowsNeedsAttention.push(window);
+
+            this.updateWorkspaceList();
+        }
+
+        updateFocusedWindow(workspace) {
+            const focusedWindow = helper.getFocusedWindow(workspace);
+            if (!focusedWindow) return;
+
+            const index = this.windowsNeedsAttention.indexOf(focusedWindow);
+            log('d', focusedWindow.title);
+
+            if (index > -1) {
+                log('r', focusedWindow.title);
+                this.windowsNeedsAttention.splice(index, 1);
+
+                this.updateWorkspaceList();
+            }
+        }
+
+        updateCreatedWindow(window) {
+            this.windowNeedsFocus(window);
+
+            this.updateWorkspaceWindows();
+        }
+
         updateWorkspaces(reload=true) {
             this.wsCount = global.workspace_manager.get_n_workspaces();
 
@@ -184,7 +233,10 @@ var WMBar = GObject.registerClass(
         }
 
         updateActiveWorkspace(reload=true) {
-            this.activeWsIndex = global.workspace_manager.get_active_workspace_index();
+            const workspace = global.workspace_manager.get_active_workspace();
+            this.activeWsIndex = workspace.index();
+
+            this.updateFocusedWindow(workspace);
 
             if (reload) {
                 this.updateWorkspaceList();
@@ -200,12 +252,12 @@ var WMBar = GObject.registerClass(
         }
 
         updateWorkspaceWindows(reload=true) {
-            this.msWindows = [];
+            this.wsWindows = [];
 
             for (let index = 0; index < global.workspace_manager.get_n_workspaces(); index++) {
                 const workspace = global.workspace_manager.get_workspace_by_index(index);
 
-                this.msWindows[index] = helper.getWindows(workspace);
+                this.wsWindows[index] = helper.getWindows(workspace);
             }
 
             if (reload) {
@@ -218,27 +270,39 @@ var WMBar = GObject.registerClass(
 
             for (let index = 0; index < this.wsCount; ++index) {
                 const wsBox = new St.Bin({ visible: true, reactive: true, can_focus: true, track_hover: true });
-                wsBox.label = new St.Label({ y_align: Clutter.ActorAlign.CENTER });
+                wsBox.label_actor = new St.Label({ y_align: Clutter.ActorAlign.CENTER });
 
                 if (index == this.activeWsIndex) {
-                    wsBox.label.style_class = 'workspace-active';
+                    wsBox.label_actor.style_class = 'workspace-active';
                 } else {
-                    wsBox.label.style_class = 'workspace-inactive';
+                    wsBox.label_actor.style_class = 'workspace-inactive';
                 }
 
-                if (!this.msWindows[index] || this.msWindows[index].length === 0) {
-                    wsBox.label.style_class += ' workspace-empty';
+                if (!this.wsWindows[index] || this.wsWindows[index].length === 0) {
+                    wsBox.label_actor.style_class += ' workspace-empty';
                 } else {
-                    wsBox.label.style_class += ' workspace-full';
+                    wsBox.label_actor.style_class += ' workspace-full';
                 }
 
                 if (this.wsNames[index]) {
-                    wsBox.label.set_text(this.wsNames[index]);
+                    wsBox.label_actor.set_text(this.wsNames[index]);
                 } else {
-                    wsBox.label.set_text((index + 1) + '');
+                    wsBox.label_actor.set_text((index + 1) + '');
                 }
 
-                wsBox.set_child(wsBox.label);
+                const workspace = global.workspace_manager.get_workspace_by_index(index);
+                const windows = workspace.list_windows();
+
+                for (const key in this.windowsNeedsAttention) {
+                    const window = this.windowsNeedsAttention[key];
+
+                    if (windows.includes(window)) {
+                        log('f', window.title);
+                        wsBox.label_actor.style_class += ' workspace-has-focus';
+                    }
+                }
+
+                wsBox.set_child(wsBox.label_actor);
                 wsBox.connect('button-press-event', (_, event) => this.workspacePressed(event, index));
 
                 this.layout.add_child(wsBox);

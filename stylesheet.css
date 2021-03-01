@@ -1,4 +1,5 @@
-.workspace-active, .workspace-inactive {
+.workspace-active,
+.workspace-inactive {
 	margin-left: 3px;
 	margin-right: 3px;
 }
@@ -16,9 +17,9 @@
 	color: rgba(156, 156, 156, 0.75);
 }
 
-.popup-menu-window-focused .popup-menu-window-title {
-	/* color:rgba(156, 156, 156, 0.75); */
-	/* color: rgba(143, 24, 24, 1); */
+.workspace-active.workspace-has-focus,
+.workspace-inactive.workspace-has-focus {
+	color: rgba(143, 24, 24, 1);
 }
 
 .popup-menu-window-focused,

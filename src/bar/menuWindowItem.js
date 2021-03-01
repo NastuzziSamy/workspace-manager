@@ -33,7 +33,7 @@ var MenuWindowItem = GObject.registerClass(
             });
             this.closeButton.connect('clicked', () => this.closeWindow());
             this.add_child(this.closeButton);
-            
+
             this.connect('activate', () => this.focusWindow());
         }
 
@@ -45,6 +45,7 @@ var MenuWindowItem = GObject.registerClass(
 
         closeWindow() {
             helper.closeWindow(this.window);
+
             this.window = null;
             this.app = null;
         }

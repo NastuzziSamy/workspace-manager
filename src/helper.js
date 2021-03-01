@@ -18,13 +18,17 @@ var openNewWindow = (app) => app.open_new_window(global.get_current_time());
 
 var focusWindow = (window) => window.activate(global.get_current_time());
 
+var isWindowOnOneWorkspace = (window) => !window.is_always_on_all_workspaces() && !window.is_on_all_workspaces();
+
 var getWindows = (workspace) => {
-    return workspace.list_windows().filter((window) => {
-        return !window.is_always_on_all_workspaces() && !window.is_on_all_workspaces();
-    });
+    return workspace.list_windows().filter(isWindowOnOneWorkspace);
 };
 
-var getFocusedWindow = (workspace) => {
+var getFocusedWindow = (workspace=null) => {
+    if (!workspace) {
+        workspace = global.workspace_manager.get_active_workspace();
+    }
+
     const windows = getWindows(workspace);
 
     for (const key in windows) {

@@ -39,7 +39,7 @@ var ProxyMixin = {
                 element[method] = callback;
             }
         }
-     
+
         this.proxies = [];
     }
 };
