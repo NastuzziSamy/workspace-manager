@@ -9,8 +9,14 @@ const { SignalMixin } = Me.imports.src.mixins;
 const { WMBar } = Me.imports.src.bar.wmBar;
 const helper = Me.imports.src.helper;
 
+const WORKSPACES_SCHEMA = "org.gnome.desktop.wm.preferences";
+const WORKSPACES_KEY = "workspace-names";
+
+
 var WorkspaceManager = class {
     constructor() {
+        this.reset();
+
         this.addBar();
         this.disableAttentionHandler();
 
@@ -23,6 +29,34 @@ var WorkspaceManager = class {
 
     connectSignals() {
         this.connectSignal(Main.layoutManager, 'startup-complete', () => this.startupCompleted());
+
+        this.connectSignal(global.display, 'window-demands-attention', (_, window) => this.windowNeedsFocus(window));
+        this.connectSignal(global.display, 'window-marked-urgent', (_, window) => this.windowNeedsFocus(window));
+        this.connectSignal(global.display, 'window-created', (_, window) => this.updateCreatedWindow(window));
+        this.connectSignal(global.display, 'notify::focus-window', () => this.updateFocusedWindow());
+        this.connectSignal(global.workspace_manager, 'notify::n-workspaces', () => this.updateWorkspaces());
+        this.connectSignal(global.window_manager, 'size-changed', () => this.updateWorkspaces());
+        this.connectSignal(global.workspace_manager, 'active-workspace-changed', () => this.updateActiveWorkspace());
+        this.connectSignal(this.wsSettings, `changed::${WORKSPACES_KEY}`, () => this.updateWorkspaceNames());
+    }
+
+    reset() {
+        this.wsSettings = new Gio.Settings({ schema: WORKSPACES_SCHEMA });
+
+        this.wsWindows = [];
+        this.wsNames = [];
+        this.windowsNeedsAttention = [];
+
+        this.updateWorkspaces(false);
+        this.updateActiveWorkspace(false);
+        this.updateWorkspaceNames(false);
+        this.updateWorkspaceWindows();
+    }
+
+    update() {
+        if (this.bar) {
+            this.bar.update();
+        }
     }
 
     addBar() {
@@ -63,8 +97,88 @@ var WorkspaceManager = class {
         }
     }
 
+    hasWorkspaceWindows(index) {
+        return this.wsWindows[index] && this.wsWindows[index].length > 0;
+    }
+
     startupCompleted() {
-        this.bar.reset();
+        this.reset();
+    }
+
+    windowNeedsFocus(window) {
+        if (this.windowsNeedsAttention.includes(window)
+            || !helper.isWindowOnOneWorkspace(window)
+            || helper.getFocusedWindow() === window) {
+            return;
+        }
+
+        this.windowsNeedsAttention.push(window);
+
+        this.update();
+    }
+
+    updateFocusedWindow(workspace) {
+        const focusedWindow = helper.getFocusedWindow(workspace);
+        if (!focusedWindow) return;
+
+        const index = this.windowsNeedsAttention.indexOf(focusedWindow);
+
+        if (index > -1) {
+            this.windowsNeedsAttention.splice(index, 1);
+
+            this.update();
+        }
+    }
+
+    updateCreatedWindow(window) {
+        this.windowNeedsFocus(window);
+
+        this.updateWorkspaceWindows();
+    }
+
+    updateWorkspaces(update=true) {
+        for (let index = 0; index < global.workspace_manager.get_n_workspaces(); index++) {
+            const workspace = global.workspace_manager.get_workspace_by_index(index);
+
+            workspace.connect('window-added', () => this.updateWorkspaceWindows());
+            workspace.connect('window-removed', () => this.updateWorkspaceWindows());
+        }
+
+        if (update) {
+            this.update();
+        }
+    }
+
+    updateActiveWorkspace(update=true) {
+        const workspace = global.workspace_manager.get_active_workspace();
+
+        this.updateFocusedWindow(workspace);
+
+        if (update) {
+            this.update();
+        }
+    }
+
+    updateWorkspaceNames(update=true) {
+        this.wsNames = this.wsSettings.get_strv(WORKSPACES_KEY);
+
+        if (update) {
+            this.update();
+        }
+    }
+
+    updateWorkspaceWindows(update=true) {
+        this.wsWindows = [];
+
+        for (let index = 0; index < global.workspace_manager.get_n_workspaces(); index++) {
+            const workspace = global.workspace_manager.get_workspace_by_index(index);
+
+            this.wsWindows[index] = helper.getWindows(workspace);
+        }
+
+        if (update) {
+            this.update();
+        }
     }
 };
 

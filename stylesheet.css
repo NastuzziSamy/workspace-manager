@@ -13,7 +13,7 @@
 	color: rgba(156, 156, 156, 0.25);
 }
 
-.workspace-inactive.workspace-full {
+.workspace-inactive.workspace-filled {
 	color: rgba(156, 156, 156, 0.75);
 }
 
