@@ -9,10 +9,10 @@ const helper = Me.imports.src.helper;
 const { SignalMixin } = Me.imports.src.mixins;
 
 
-var WMBar = GObject.registerClass(
-    class WMBar extends PanelMenu.Button {
+var WorkspacesBar = GObject.registerClass(
+    class WorkspacesBar extends PanelMenu.Button {
         _init() {
-            super._init(0.5, 'WMbar');
+            super._init(0.5, 'workspaces');
 
             this.layout = new St.BoxLayout({});
             this.add_child(this.layout);
@@ -168,14 +168,14 @@ var WMBar = GObject.registerClass(
                     wsBox.label_actor.style_class = 'workspace-inactive';
                 }
 
-                if (manager.hasWorkspaceWindows(index)) {
+                if (manager.hasWindows(index)) {
                     wsBox.label_actor.style_class += ' workspace-filled';
                 } else {
                     wsBox.label_actor.style_class += ' workspace-empty';
                 }
 
-                if (manager.wsNames[index]) {
-                    wsBox.label_actor.set_text(manager.wsNames[index]);
+                if (manager.names[index]) {
+                    wsBox.label_actor.set_text(manager.names[index]);
                 } else {
                     wsBox.label_actor.set_text((index + 1) + '');
                 }
@@ -229,26 +229,18 @@ var WMBar = GObject.registerClass(
                         this.menu.toggle();
                     }
 
-                    this.selectWs(index);
+                    global.managers.workspace.switchToWorkspace(index);
 
                     return Clutter.EVENT_STOP;
             }
         }
 
-        selectWs(index) {
-            if (global.workspace_manager.get_active_workspace_index() === index) {
-                Main.overview.toggle();
-            }
-
-            global.workspace_manager.get_workspace_by_index(index).activate(global.get_current_time());
-        }
-
         selectNextWs(previous) {
             if (previous) {
-                return this.selectWs(this.activeWsIndex === 0 ? (this.wsCount - 1) : (this.activeWsIndex - 1));
+                return global.managers.workspace.switchToWorkspace(this.activeWsIndex === 0 ? (this.wsCount - 1) : (this.activeWsIndex - 1));
             }
 
-            this.selectWs((this.activeWsIndex + 1) % this.wsCount);
+            global.managers.workspace.switchToWorkspace((this.activeWsIndex + 1) % this.wsCount);
         }
 
         getGlobalPosition() {
@@ -297,13 +289,10 @@ var WMBar = GObject.registerClass(
             const wsIndex = this.getWorkspaceIndexUnderCursor();
 
             if (wsIndex >= 0) {
-                window.change_workspace_by_index(wsIndex, true);
-
-                global.display.get_workspace_manager().get_workspace_by_index(wsIndex)
-                    .activate_with_focus(window, global.get_current_time());
+                global.managers.workspace.moveWindowToWorkspace(window, wsIndex);
             }
         }
     }
 );
 
-Object.assign(WMBar.prototype, SignalMixin);
+Object.assign(WorkspacesBar.prototype, SignalMixin);

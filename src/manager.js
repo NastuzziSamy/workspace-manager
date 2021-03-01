@@ -1,4 +1,4 @@
-const { Clutter, Meta, Gio, GObject, St } = imports.gi;
+const { Clutter, Meta, Shell, Gio, GObject, St } = imports.gi;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Main = imports.ui.main;
@@ -6,18 +6,24 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Handler = Main.windowAttentionHandler;
 
 const { SignalMixin } = Me.imports.src.mixins;
-const { WMBar } = Me.imports.src.bar.wmBar;
+const { WorkspacesBar } = Me.imports.src.bar.index;
 const helper = Me.imports.src.helper;
 
-const WORKSPACES_SCHEMA = "org.gnome.desktop.wm.preferences";
-const WORKSPACES_KEY = "workspace-names";
-
+const WORKSPACES_SCHEMA = 'org.gnome.desktop.wm.preferences';
+const WORKSPACES_KEY = 'workspace-names';
+const SWITCH_TO_WORKSPACE_I_KEY = 'keybindings.switch-to-workspace-';
+const MOVE_TO_WORKSPACE_I_KEY = 'keybindings.move-to-workspace-';
+const MAX_N_WORKSPACES = 36;
 
 var WorkspaceManager = class {
-    constructor() {
+    constructor(settings) {
+        this.wsSettings = new Gio.Settings({ schema: WORKSPACES_SCHEMA });
+        this.settings = settings
+
         this.reset();
 
         this.addBar();
+        this.addKeybindings();
         this.disableAttentionHandler();
 
         this.connectSignals();
@@ -42,13 +48,10 @@ var WorkspaceManager = class {
     }
 
     reset() {
-        this.wsSettings = new Gio.Settings({ schema: WORKSPACES_SCHEMA });
-
-        this.wsWindows = [];
-        this.wsNames = [];
+        this.windows = [];
+        this.names = [];
         this.windowsNeedsAttention = [];
 
-        // this.updateWorkspaces();
         this.updateActiveWorkspace();
         this.updateWorkspaceNames();
         this.updateWorkspaceWindows();
@@ -61,7 +64,7 @@ var WorkspaceManager = class {
     }
 
     addBar() {
-        this.bar = new WMBar();
+        this.bar = new WorkspacesBar();
 
         Main.panel.addToStatusArea('wm-bar', this.bar, 0, 'left');
     }
@@ -70,6 +73,38 @@ var WorkspaceManager = class {
         this.bar.destroy();
 
         this.bar = null;
+    }
+
+    addKeybindings() {
+        for (let i = 0; i < MAX_N_WORKSPACES; i++) {
+            Main.wm.addKeybinding(
+                SWITCH_TO_WORKSPACE_I_KEY + i,
+                this.settings,
+                Meta.KeyBindingFlags.NONE,
+                Shell.ActionMode.NORMAL || Shell.ActionMode.OVERVIEW,
+                () => this.switchToWorkspace(i)
+            );
+
+            Main.wm.addKeybinding(
+                MOVE_TO_WORKSPACE_I_KEY + i,
+                this.settings,
+                Meta.KeyBindingFlags.NONE,
+                Shell.ActionMode.NORMAL || Shell.ActionMode.OVERVIEW,
+                () => this.moveFocusedWindowToWorkspace(i)
+            );
+        }
+    }
+
+    removeKeybindings() {
+        for (let i = 0; i < MAX_N_WORKSPACES; i++) {
+            Main.wm.removeKeybinding(
+                SWITCH_TO_WORKSPACE_I_KEY + i,
+            );
+
+            Main.wm.removeKeybinding(
+                MOVE_TO_WORKSPACE_I_KEY + i,
+            );
+        }
     }
 
     disableAttentionHandler() {
@@ -98,8 +133,8 @@ var WorkspaceManager = class {
         }
     }
 
-    hasWorkspaceWindows(index) {
-        return this.wsWindows[index] && this.wsWindows[index].length > 0;
+    hasWindows(index) {
+        return this.windows[index] && this.windows[index].length > 0;
     }
 
     startupCompleted() {
@@ -155,21 +190,40 @@ var WorkspaceManager = class {
     }
 
     updateWorkspaceNames() {
-        this.wsNames = this.wsSettings.get_strv(WORKSPACES_KEY);
+        this.names = this.wsSettings.get_strv(WORKSPACES_KEY);
 
         this.update();
     }
 
     updateWorkspaceWindows() {
-        this.wsWindows = [];
+        this.windows = [];
 
         for (let index = 0; index < global.workspace_manager.get_n_workspaces(); index++) {
             const workspace = global.workspace_manager.get_workspace_by_index(index);
 
-            this.wsWindows[index] = helper.getWindows(workspace);
+            this.windows[index] = helper.getWindows(workspace);
         }
 
         this.update();
+    }
+
+    switchToWorkspace(index) {
+        if (global.workspace_manager.get_active_workspace_index() === index) {
+            Main.overview.toggle();
+        }
+
+        global.workspace_manager.get_workspace_by_index(index).activate(global.get_current_time());
+    }
+
+    moveWindowToWorkspace(window, index) {
+        window.change_workspace_by_index(wsIndex, true);
+
+        global.display.get_workspace_manager().get_workspace_by_index(index)
+            .activate_with_focus(window, global.get_current_time());
+    }
+
+    moveFocusedWindowToWorkspace() {
+        this.moveWindowToWorkspace(helper.getFocusedWindow());
     }
 };
 

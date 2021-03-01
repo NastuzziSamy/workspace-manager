@@ -92,11 +92,11 @@ var closeAllWindows = (index) => {
     for (const key in windows) {
         closeWindow(windows[key]);
     }
-}
+};
 
 var removeWorkspace = (index) => {
     const workspace = global.workspace_manager.get_workspace_by_index(index);
     if (!workspace) return;
 
     global.workspace_manager.remove_workspace(workspace, global.get_current_time());
-}
+};
