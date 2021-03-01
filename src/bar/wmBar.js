@@ -1,4 +1,4 @@
-const { Clutter, Meta, Gio, GLib, GObject, St } = imports.gi;
+const { Clutter, Meta, Gio, GObject, St } = imports.gi;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Main = imports.ui.main;
@@ -17,26 +17,27 @@ var WMBar = GObject.registerClass(
         _init() {
             super._init(0.5, 'WMbar');
 
-            this.wsSettings = new Gio.Settings({ schema: WORKSPACES_SCHEMA });
-            this.wsWindows = [];
-            this.windowsNeedsAttention = [];
-            this.isDestroyed = false;
-
             this.layout = new St.BoxLayout({});
             this.add_child(this.layout);
 
-            this.updateWorkspaces(false);
-            this.updateActiveWorkspace(false);
-            this.updateWorkspaceNames(false);
-            this.updateWorkspaceWindows();
+            this.reset();
 
             this.connectSignals();
             this.createMenu();
         }
 
-        destroy() {
-            this.isDestroyed = true;
+        reset() {
+            this.wsSettings = new Gio.Settings({ schema: WORKSPACES_SCHEMA });
+            this.wsWindows = [];
+            this.windowsNeedsAttention = [];
 
+            this.updateWorkspaces(false);
+            this.updateActiveWorkspace(false);
+            this.updateWorkspaceNames(false);
+            this.updateWorkspaceWindows();
+        }
+
+        destroy() {
             this.disconnectSignals();
 
             super.destroy();
@@ -56,6 +57,7 @@ var WMBar = GObject.registerClass(
 
             this.connectSignal(global.display, 'window-demands-attention', (_, window) => this.windowNeedsFocus(window));
             this.connectSignal(global.display, 'window-marked-urgent', (_, window) => this.windowNeedsFocus(window));
+            this.connectSignal(global.display, 'window-created', (_, window) => this.updateCreatedWindow(window));
             this.connectSignal(global.display, 'notify::focus-window', () => this.updateFocusedWindow());
             this.connectSignal(global.display, 'grab-op-end', (_0, _1, window, op) => (op === Meta.GrabOp.MOVING) && this.moveActiveGrabbedWindow(window, op));
             this.connectSignal(Main.overview, 'window-drag-end', (_, window) => this.moveActiveGrabbedWindow(window));
@@ -63,16 +65,6 @@ var WMBar = GObject.registerClass(
             this.connectSignal(global.window_manager, 'size-changed', () => this.updateWorkspaces());
             this.connectSignal(global.workspace_manager, 'active-workspace-changed', () => this.updateActiveWorkspace());
             this.connectSignal(this.wsSettings, `changed::${WORKSPACES_KEY}`, () => this.updateWorkspaceNames());
-
-            GLib.timeout_add(GLib.PRIORITY_DEFAULT, 50, () => {
-                if (!this.isDestroyed) {
-                    this.updateWorkspaceWindows();
-
-                    this.connectSignal(global.display, 'window-created', (_, window) => this.updateCreatedWindow(window));
-                }
-
-                return GLib.SOURCE_REMOVE;
-            });
         }
 
         createMenu() {
@@ -189,7 +181,6 @@ var WMBar = GObject.registerClass(
                 || helper.getFocusedWindow() === window) {
                 return;
             }
-            log('a', window.title);
 
             this.windowsNeedsAttention.push(window);
 
@@ -201,10 +192,8 @@ var WMBar = GObject.registerClass(
             if (!focusedWindow) return;
 
             const index = this.windowsNeedsAttention.indexOf(focusedWindow);
-            log('d', focusedWindow.title);
 
             if (index > -1) {
-                log('r', focusedWindow.title);
                 this.windowsNeedsAttention.splice(index, 1);
 
                 this.updateWorkspaceList();
@@ -297,7 +286,6 @@ var WMBar = GObject.registerClass(
                     const window = this.windowsNeedsAttention[key];
 
                     if (windows.includes(window)) {
-                        log('f', window.title);
                         wsBox.label_actor.style_class += ' workspace-has-focus';
                     }
                 }

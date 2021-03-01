@@ -1,19 +1,25 @@
 const Main = imports.ui.main;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 
-const { WMBar } = Me.imports.src.bar.wmBar;
+const { WorkspaceManager } = Me.imports.src.manager;
 
 
 var Extension = class {
     enable() {
-        this.bar = new WMBar();
+        if (!global.managers) {
+            global.managers = {};
+        }
 
-        Main.panel.addToStatusArea('wm-bar', this.bar, 0, 'left');
+        global.managers.workspace = new WorkspaceManager();
     }
 
     disable() {
-        this.bar.destroy();
+        if (!global.managers) return;
 
-        this.bar = null;
+        if (global.managers.workspace) {
+            global.managers.workspace.destroy();
+        }
+
+        global.managers.workspace = undefined;
     }
 };
