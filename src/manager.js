@@ -34,9 +34,10 @@ var WorkspaceManager = class {
         this.connectSignal(global.display, 'window-marked-urgent', (_, window) => this.windowNeedsFocus(window));
         this.connectSignal(global.display, 'window-created', (_, window) => this.updateCreatedWindow(window));
         this.connectSignal(global.display, 'notify::focus-window', () => this.updateFocusedWindow());
-        this.connectSignal(global.workspace_manager, 'notify::n-workspaces', () => this.updateWorkspaces());
-        this.connectSignal(global.window_manager, 'size-changed', () => this.updateWorkspaces());
+        this.connectSignal(global.workspace_manager, 'workspace-added', (_, index) => this.handleCreatedWorkspaceIndex(index));
+        this.connectSignal(global.workspace_manager, 'notify::n-workspaces', () => this.update());
         this.connectSignal(global.workspace_manager, 'active-workspace-changed', () => this.updateActiveWorkspace());
+        this.connectSignal(global.window_manager, 'size-changed', () => this.update());
         this.connectSignal(this.wsSettings, `changed::${WORKSPACES_KEY}`, () => this.updateWorkspaceNames());
     }
 
@@ -47,9 +48,9 @@ var WorkspaceManager = class {
         this.wsNames = [];
         this.windowsNeedsAttention = [];
 
-        this.updateWorkspaces(false);
-        this.updateActiveWorkspace(false);
-        this.updateWorkspaceNames(false);
+        // this.updateWorkspaces();
+        this.updateActiveWorkspace();
+        this.updateWorkspaceNames();
         this.updateWorkspaceWindows();
     }
 
@@ -136,38 +137,30 @@ var WorkspaceManager = class {
         this.updateWorkspaceWindows();
     }
 
-    updateWorkspaces(update=true) {
-        for (let index = 0; index < global.workspace_manager.get_n_workspaces(); index++) {
-            const workspace = global.workspace_manager.get_workspace_by_index(index);
+    handleCreatedWorkspaceIndex(index) {
+        const workspace = global.workspace_manager.get_workspace_by_index(index);
 
-            workspace.connect('window-added', () => this.updateWorkspaceWindows());
-            workspace.connect('window-removed', () => this.updateWorkspaceWindows());
-        }
+        workspace.connect('window-added', () => this.updateWorkspaceWindows());
+        workspace.connect('window-removed', () => this.updateWorkspaceWindows());
 
-        if (update) {
-            this.update();
-        }
+        this.update();
     }
 
-    updateActiveWorkspace(update=true) {
+    updateActiveWorkspace() {
         const workspace = global.workspace_manager.get_active_workspace();
 
         this.updateFocusedWindow(workspace);
 
-        if (update) {
-            this.update();
-        }
+        this.update();
     }
 
-    updateWorkspaceNames(update=true) {
+    updateWorkspaceNames() {
         this.wsNames = this.wsSettings.get_strv(WORKSPACES_KEY);
 
-        if (update) {
-            this.update();
-        }
+        this.update();
     }
 
-    updateWorkspaceWindows(update=true) {
+    updateWorkspaceWindows() {
         this.wsWindows = [];
 
         for (let index = 0; index < global.workspace_manager.get_n_workspaces(); index++) {
@@ -176,9 +169,7 @@ var WorkspaceManager = class {
             this.wsWindows[index] = helper.getWindows(workspace);
         }
 
-        if (update) {
-            this.update();
-        }
+        this.update();
     }
 };
 
