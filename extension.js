@@ -5,4 +5,3 @@ const { Extension } = Me.imports.src.main;
 function init() {
 	return new Extension();
 }
-

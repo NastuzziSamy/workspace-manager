@@ -13,7 +13,9 @@ var SignalMixin = {
         for (const key in this.signals) {
             const [element, signal] = this.signals[key];
 
-            element.disconnect(signal);
+            try {
+                element.disconnect(signal);
+            } catch (_) {}
         }
 
         this.signals = [];
