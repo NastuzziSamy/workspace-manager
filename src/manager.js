@@ -22,14 +22,18 @@ var WorkspaceManager = class {
 
         this.reset();
 
-        this.addBar();
-        this.addKeybindings();
-        this.disableAttentionHandler();
+        this.trackSettings();
+
+        // this.addKeybindings();
 
         this.connectSignals();
     }
 
     destroy() {
+        // this.removeKeybindings();
+
+        this.removeBar();
+
         this.disconnectSignals();
     }
 
@@ -63,14 +67,24 @@ var WorkspaceManager = class {
         }
     }
 
+    trackSettings() {
+        this.settings.follow('workspace', 'enable-workspace-bar',
+            this.addBar.bind(this), this.removeBar.bind(this));
+
+        this.settings.follow('workspace', 'disable-attention-notification',
+            this.disableAttentionHandler.bind(this), this.enableAttentionHandler.bind(this));
+    }
+
     addBar() {
         this.bar = new WorkspacesBar();
 
-        Main.panel.addToStatusArea('wm-bar', this.bar, 0, 'left');
+        Main.panel.addToStatusArea(this.bar.accessible_name, this.bar, 0, 'left');
     }
 
     removeBar() {
-        this.bar.destroy();
+        if (this.bar) {
+            this.bar.destroy();
+        }
 
         this.bar = null;
     }

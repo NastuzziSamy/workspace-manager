@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+    <schema id="org.gnome.shell.extensions.managers.workspace"
+        path="/org/gnome/shell/extensions/managers/workspace/">
+
+        <key type="b" name="enable-workspace-bar">
+            <default>true</default>
+            <summary>Enable workspace bar</summary>
+            <description>
+                Workspace bar shows all opened workspaces and allow navigation
+            </description>
+        </key>
+
+        <key type="b" name="disable-attention-notification">
+            <default>true</default>
+            <summary>Disable window attention notification</summary>
+            <description>
+                Default functionnality that notify when a window is ready
+            </description>
+        </key>
+
+    </schema>
+</schemalist>
