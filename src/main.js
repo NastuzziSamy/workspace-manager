@@ -4,12 +4,8 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 
 const { WorkspaceManager } = Me.imports.src.manager;
 const { Settings } = Me.imports.src.settings;
+const { SCHEMAS } = Me.imports.src.consts;
 // const { PrefsWidget } = Me.imports.src.widget;
-
-const SCHEMAS = {
-    'workspace': 'org.gnome.shell.extensions.managers.workspace',
-    'keybindings': 'org.gnome.shell.extensions.managers.workspace.keybindings',
-}
 
 
 var Extension = class {
@@ -30,7 +26,9 @@ var Extension = class {
     }
 
     disable() {
-        if (!global.managers) return;
+        if (!global.managers) {
+            global.managers = {};
+        }
 
         if (global.managers.workspace) {
             global.managers.workspace.destroy();
@@ -39,3 +37,18 @@ var Extension = class {
         global.managers.workspace = undefined;
     }
 };
+
+
+// var Prefs = class {
+//     constructor() {
+//         this.widget = null;
+//     }
+
+//     getWidget() {
+//         if (!this.widget) {
+//             this.widget = new PrefsWidget();
+//         }
+
+//         return this.widget;
+//     }
+// };

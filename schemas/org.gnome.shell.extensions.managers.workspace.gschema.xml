@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schemalist>
+<schemalist gettext-domain="gnome-shell-extensions">
     <schema id="org.gnome.shell.extensions.managers.workspace"
         path="/org/gnome/shell/extensions/managers/workspace/">
 
@@ -18,6 +18,14 @@
                 Default functionnality that notify when a window is ready
             </description>
         </key>
+
+        <!-- <key type="as" name="bar-workspace-apps">
+            <default><![CDATA[[]]]></default>
+            <summary>App to start for each workspace</summary>
+            <description>
+                Middle click on workspace name launch the application
+            </description>
+        </key> -->
 
     </schema>
 </schemalist>

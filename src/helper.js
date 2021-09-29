@@ -1,18 +1,9 @@
 const { Shell } = imports.gi;
+const Me = imports.misc.extensionUtils.getCurrentExtension();
 
-const WORKSPACE_APPS = [
-    'org.gnome.Terminal.desktop',
-    'firefox.desktop',
-    'codium.desktop',
-    'org.gnome.Nautilus.desktop',
-    'spotify.desktop',
-    'org.gnome.Evolution.desktop',
-    null,
-    null,
-    null,
-    'slack_slack.desktop',
-    null,
-];
+const { WORKSPACE_APPS } = Me.imports.src.consts;
+
+var log = (text) => global.log('[managers.workspace] ' + text);
 
 var openNewWindow = (app) => app.open_new_window(global.get_current_time());
 

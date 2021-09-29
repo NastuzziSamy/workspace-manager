@@ -2,12 +2,13 @@ const { Gio, GLib } = imports.gi;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 
 const { SignalMixin } = Me.imports.src.mixins;
+const helper = Me.imports.src.helper;
 
 
 var Settings = class {
     constructor(schemas) {
         this.schemas = schemas;
-        this.settings = [];
+        this.settings = {};
 
         const GioSSS = Gio.SettingsSchemaSource;
 
@@ -23,6 +24,8 @@ var Settings = class {
 
             if (schemaObj) {
                 this.settings[key] = new Gio.Settings({ settings_schema : schemaObj });
+            } else {
+                helper.log(`ERROR: Schema ${key} (${schema}) not found`);
             }
         }
     }
@@ -33,7 +36,13 @@ var Settings = class {
 
     get(key, name) {
         const settings = this.settings[key];
-        if (!settings) return;
+        if (!settings) {
+            return helper.log(`ERROR: Cannot find settings ${key}`);
+        }
+
+        if (!name) {
+            return settings;
+        }
 
         const variant = settings.get_value(name);
         const variantType = variant.get_type_string();
@@ -57,8 +66,10 @@ var Settings = class {
     }
 
     set(key, name, value) {
-        const settings = this.settings[key];
-        if (!settings) return;
+        const settings = this.get(key);
+        if (!settings) {
+            return helper.log(`ERROR: Cannot set settings ${name} with ${value}`);
+        }
 
         const variant = settings.get_default_value(name);
         const variantType = variant.get_type_string();
@@ -67,14 +78,21 @@ var Settings = class {
     }
 
     reset(key, name) {
-        const settings = this.settings[key];
-        if (!settings) return;
+        const settings = this.get(key);
+        if (!settings) {
+            return helper.log(`ERROR: Cannot reset settings ${name}`);
+        }
 
         settings.set_value(name, settings.get_default_value(name));
     }
 
     track(key, name, callback, notCallback) {
-        this.connectSignal(this.settings[key], `changed::${name}`, notCallback ? () => {
+        const settings = this.get(key);
+        if (!settings) {
+            return helper.log(`ERROR: Cannot track settings ${name}`);
+        }
+
+        this.connectSignal(settings, `changed::${name}`, notCallback ? () => {
             const value = this.get(key, name);
 
             if (value) {
