@@ -1,31 +1,42 @@
-const { Gio } = imports.gi;
-const Main = imports.ui.main;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 
 const { WorkspaceManager } = Me.imports.src.manager;
 const { Settings } = Me.imports.src.settings;
-const { SCHEMAS } = Me.imports.src.consts;
+const { WORKSPACE_SCHEMA_KEY, SCHEMAS } = Me.imports.src.consts;
+const { settings, setSettings } = Me.imports.src.helper;
 // const { PrefsWidget } = Me.imports.src.widget;
 
 
 var Extension = class {
     constructor() {
         this.loadSettings();
-    }
 
-    loadSettings() {
-        this.settings = new Settings(SCHEMAS);
-    }
-
-    enable() {
         if (!global.managers) {
             global.managers = {};
         }
 
-        global.managers.workspace = new WorkspaceManager(this.settings);
+        if (settings.debug) {
+            global.managers._workspace = Me;
+        }
+    }
+
+    loadSettings() {
+        this.settings = new Settings(SCHEMAS);
+
+        for (const key in settings) {
+            this.settings.follow(WORKSPACE_SCHEMA_KEY, key, (value) => setSettings(key, value));
+        }
+    }
+
+    enable() {
+        global.managers.workspace = new WorkspaceManager();
+
+        global.managers.workspace.manage();
     }
 
     disable() {
+        Me.settings.disconnectSignals();
+
         if (!global.managers) {
             global.managers = {};
         }

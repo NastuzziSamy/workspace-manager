@@ -22,7 +22,6 @@ var WORKSPACE_APPS = [
     'org.gnome.Evolution.desktop',
     null,
     null,
-    null,
     'slack_slack.desktop',
     null,
 ];

@@ -6,24 +6,24 @@ const Main = imports.ui.main;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Handler = Main.windowAttentionHandler;
 
-const { SignalMixin } = Me.imports.src.mixins;
+const { SignalMixin, KeybindingMixin } = Me.imports.src.mixins;
 const { WorkspacesBar } = Me.imports.src.bar.index;
 const helper = Me.imports.src.helper;
 const { WORKSPACE_SCHEMA_KEY, KEYBINDINGS_SCHEMA_KEY, GNOME_SCHEMA_KEY, WORKSPACES_KEY, SWITCH_TO_WORKSPACE_I_KEY, MOVE_TO_WORKSPACE_I_KEY, MAX_N_WORKSPACES } = Me.imports.src.consts;
 
 var WorkspaceManager = class {
-    constructor(settings) {
-        this.settings = settings;
-
+    manage() {
         this.reset();
 
         this.trackSettings();
-        this.addKeybindings();
+
         this.connectSignals();
+        this.addKeybindings();
     }
 
     destroy() {
         this.removeBar();
+
         this.removeKeybindings();
         this.disconnectSignals();
     }
@@ -34,12 +34,24 @@ var WorkspaceManager = class {
         this.connectSignal(global.display, 'window-demands-attention', (_, window) => this.windowNeedsFocus(window));
         this.connectSignal(global.display, 'window-marked-urgent', (_, window) => this.windowNeedsFocus(window));
         this.connectSignal(global.display, 'window-created', (_, window) => this.updateCreatedWindow(window));
+
+        this.connectSignal(Shell.WindowTracker.get_default(), 'tracked-windows-changed', () => this.update());
+
         this.connectSignal(global.display, 'notify::focus-window', () => this.updateFocusedWindow());
         this.connectSignal(global.workspace_manager, 'workspace-added', (_, index) => this.handleCreatedWorkspaceIndex(index));
         this.connectSignal(global.workspace_manager, 'notify::n-workspaces', () => this.update());
         this.connectSignal(global.workspace_manager, 'active-workspace-changed', () => this.updateActiveWorkspace());
         this.connectSignal(global.window_manager, 'size-changed', () => this.update());
-        this.connectSignal(this.settings.get(GNOME_SCHEMA_KEY), `changed::${WORKSPACES_KEY}`, () => this.updateWorkspaceNames());
+    }
+
+    trackSettings() {
+        Me.settings.track(GNOME_SCHEMA_KEY, WORKSPACES_KEY, () => this.updateWorkspaceNames());
+
+        Me.settings.follow(WORKSPACE_SCHEMA_KEY, 'enable-workspace-bar',
+            () => this.addBar(), () => this.removeBar());
+
+        Me.settings.follow(WORKSPACE_SCHEMA_KEY, 'disable-attention-notification',
+            () => this.disableAttentionHandler(), () => this.enableAttentionHandler());
     }
 
     reset() {
@@ -56,14 +68,6 @@ var WorkspaceManager = class {
         if (this.bar) {
             this.bar.update();
         }
-    }
-
-    trackSettings() {
-        this.settings.follow(WORKSPACE_SCHEMA_KEY, 'enable-workspace-bar',
-            this.addBar.bind(this), this.removeBar.bind(this));
-
-        this.settings.follow(WORKSPACE_SCHEMA_KEY, 'disable-attention-notification',
-            this.disableAttentionHandler.bind(this), this.enableAttentionHandler.bind(this));
     }
 
     addBar() {
@@ -83,35 +87,19 @@ var WorkspaceManager = class {
     }
 
     addKeybindings() {
-        const settings = this.settings.get(KEYBINDINGS_SCHEMA_KEY);
+        const settings = Me.settings.get(KEYBINDINGS_SCHEMA_KEY);
 
         for (let i = 1; i <= MAX_N_WORKSPACES; i++) {
-            Main.wm.addKeybinding(
+            this.addKeybinding(
                 SWITCH_TO_WORKSPACE_I_KEY + i,
                 settings,
-                Meta.KeyBindingFlags.NONE,
-                Shell.ActionMode.NORMAL || Shell.ActionMode.OVERVIEW,
                 () => this.switchToWorkspace(i)
             );
 
-            Main.wm.addKeybinding(
+            this.addKeybinding(
                 MOVE_TO_WORKSPACE_I_KEY + i,
                 settings,
-                Meta.KeyBindingFlags.NONE,
-                Shell.ActionMode.NORMAL || Shell.ActionMode.OVERVIEW,
                 () => this.moveFocusedWindowToWorkspace(i)
-            );
-        }
-    }
-
-    removeKeybindings() {
-        for (let i = 0; i < MAX_N_WORKSPACES; i++) {
-            Main.wm.removeKeybinding(
-                SWITCH_TO_WORKSPACE_I_KEY + i,
-            );
-
-            Main.wm.removeKeybinding(
-                MOVE_TO_WORKSPACE_I_KEY + i,
             );
         }
     }
@@ -199,7 +187,7 @@ var WorkspaceManager = class {
     }
 
     updateWorkspaceNames() {
-        this.names = this.settings.get(GNOME_SCHEMA_KEY, WORKSPACES_KEY);
+        this.names = Me.settings.get(GNOME_SCHEMA_KEY, WORKSPACES_KEY);
 
         this.update();
     }
@@ -237,3 +225,4 @@ var WorkspaceManager = class {
 };
 
 Object.assign(WorkspaceManager.prototype, SignalMixin);
+Object.assign(WorkspaceManager.prototype, KeybindingMixin);

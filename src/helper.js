@@ -3,17 +3,38 @@ const Me = imports.misc.extensionUtils.getCurrentExtension();
 
 const { WORKSPACE_APPS } = Me.imports.src.consts;
 
-var log = (text) => global.log('[managers.workspace] ' + text);
+
+var settings = {
+    debug: false,
+};
+
+var setSettings = (key, value) => {
+    if (key === 'debug') {
+        log('DEBUG ' + (value ? 'activated' : 'desactivated'));
+    }
+
+    settings[key] = value;
+};
+
+
+var formatLog = (text) => '[' + Me.metadata.uuid + '] ' + text;
+
+var log = (text, ...args) => console.log(formatLog(text), ...args);
+
+var warn = (text, ...args) => console.warn(formatLog(text), ...args);
+
+var debug = (text, ...args) => {
+    if (settings.debug) {
+        log('DEBUG: ' + text, ...args);
+    }
+}
+
 
 var openNewWindow = (app) => app.open_new_window(global.get_current_time());
 
 var focusWindow = (window) => window.activate(global.get_current_time());
 
-var isWindowOnOneWorkspace = (window) => !window.is_always_on_all_workspaces() && !window.is_on_all_workspaces();
-
-var getWindows = (workspace) => {
-    return workspace.list_windows().filter(isWindowOnOneWorkspace);
-};
+var closeWindow = (window) => window.delete(global.get_current_time());
 
 var getFocusedWindow = (workspace=null) => {
     if (!workspace) {
@@ -30,6 +51,32 @@ var getFocusedWindow = (workspace=null) => {
         }
     }
 };
+
+
+var isWindowOnOneWorkspace = (window) => !window.is_always_on_all_workspaces() && !window.is_on_all_workspaces();
+
+var getWindows = (workspace) => {
+    return workspace.list_windows().filter(isWindowOnOneWorkspace);
+};
+
+var closeAllWindows = (index) => {
+    const workspace = global.workspace_manager.get_workspace_by_index(index);
+    if (!workspace) return;
+
+    const windows = workspace.list_windows();
+
+    for (const key in windows) {
+        closeWindow(windows[key]);
+    }
+};
+
+var removeWorkspace = (index) => {
+    const workspace = global.workspace_manager.get_workspace_by_index(index);
+    if (!workspace) return;
+
+    global.workspace_manager.remove_workspace(workspace, global.get_current_time());
+};
+
 
 var getWindowsByApp = (workspace) => {
     const byApps = {};
@@ -70,24 +117,4 @@ var getWindowApp = (window) => {
     if (!windowTracker) return;
 
     return windowTracker.get_window_app(window);
-};
-
-var closeWindow = (window) => window.delete(global.get_current_time());
-
-var closeAllWindows = (index) => {
-    const workspace = global.workspace_manager.get_workspace_by_index(index);
-    if (!workspace) return;
-
-    const windows = workspace.list_windows();
-
-    for (const key in windows) {
-        closeWindow(windows[key]);
-    }
-};
-
-var removeWorkspace = (index) => {
-    const workspace = global.workspace_manager.get_workspace_by_index(index);
-    if (!workspace) return;
-
-    global.workspace_manager.remove_workspace(workspace, global.get_current_time());
 };

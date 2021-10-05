@@ -2,7 +2,7 @@ const { Gio, GLib } = imports.gi;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 
 const { SignalMixin } = Me.imports.src.mixins;
-const helper = Me.imports.src.helper;
+const { warn } = Me.imports.src.helper;
 
 
 var Settings = class {
@@ -25,7 +25,7 @@ var Settings = class {
             if (schemaObj) {
                 this.settings[key] = new Gio.Settings({ settings_schema : schemaObj });
             } else {
-                helper.log(`ERROR: Schema ${key} (${schema}) not found`);
+                warn(`Schema ${key} (${schema}) not found`);
             }
         }
     }
@@ -37,7 +37,7 @@ var Settings = class {
     get(key, name) {
         const settings = this.settings[key];
         if (!settings) {
-            return helper.log(`ERROR: Cannot find settings ${key}`);
+            return warn(`Cannot find settings ${key}`);
         }
 
         if (!name) {
@@ -68,7 +68,7 @@ var Settings = class {
     set(key, name, value) {
         const settings = this.get(key);
         if (!settings) {
-            return helper.log(`ERROR: Cannot set settings ${name} with ${value}`);
+            return warn(`Cannot set settings ${name} with ${value}`);
         }
 
         const variant = settings.get_default_value(name);
@@ -80,7 +80,7 @@ var Settings = class {
     reset(key, name) {
         const settings = this.get(key);
         if (!settings) {
-            return helper.log(`ERROR: Cannot reset settings ${name}`);
+            return warn(`Cannot reset settings ${name}`);
         }
 
         settings.set_value(name, settings.get_default_value(name));
@@ -89,7 +89,7 @@ var Settings = class {
     track(key, name, callback, notCallback) {
         const settings = this.get(key);
         if (!settings) {
-            return helper.log(`ERROR: Cannot track settings ${name}`);
+            return warn(`Cannot track settings ${name}`);
         }
 
         this.connectSignal(settings, `changed::${name}`, notCallback ? () => {

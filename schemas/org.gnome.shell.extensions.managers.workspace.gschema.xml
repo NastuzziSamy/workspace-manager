@@ -3,6 +3,14 @@
     <schema id="org.gnome.shell.extensions.managers.workspace"
         path="/org/gnome/shell/extensions/managers/workspace/">
 
+        <key type="b" name="debug">
+            <default>false</default>
+            <summary>Debug workspace manager</summary>
+            <description>
+                Show debug messages
+            </description>
+        </key>
+
         <key type="b" name="enable-workspace-bar">
             <default>true</default>
             <summary>Enable workspace bar</summary>
