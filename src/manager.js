@@ -8,8 +8,8 @@ const Handler = Main.windowAttentionHandler;
 
 const { SignalMixin, KeybindingMixin } = Me.imports.src.mixins;
 const { WorkspacesBar } = Me.imports.src.bar.index;
-const helper = Me.imports.src.helper;
-const { WORKSPACE_SCHEMA_KEY, KEYBINDINGS_SCHEMA_KEY, GNOME_SCHEMA_KEY, WORKSPACES_KEY, SWITCH_TO_WORKSPACE_I_KEY, MOVE_TO_WORKSPACE_I_KEY, MAX_N_WORKSPACES } = Me.imports.src.consts;
+const { isWindowOnOneWorkspace, getFocusedWindow, getWorkspace, getWindows, goToWorkspaceIndex, moveWindowToWorkspaceIndex } = Me.imports.src.helper;
+const { WORKSPACE_SCHEMA_KEY, KEYBINDINGS_SCHEMA_KEY, GNOME_SCHEMA_KEY, GNOME_KEYBINDINGS_SCHEMA_KEY, WORKSPACES_KEY, GO_TO_WORKSPACE_I_KEY, MOVE_WINDOW_TO_WORKSPACE_I_KEY, MAX_N_WORKSPACES, MOVE_TO_WORKSPACE_I_KEY, SWITCH_TO_WORKSPACE_I_KEY } = Me.imports.src.consts;
 
 var WorkspaceManager = class {
     manage() {
@@ -22,17 +22,22 @@ var WorkspaceManager = class {
     }
 
     reset() {
-        this.lastWorkspace;
-        this.currentWorkspace = global.workspace_manager.get_active_workspace();
-        this.nWorkspaces = global.workspace_manager.get_n_workspaces();
-
         this.windows = [];
         this.names = [];
         this.windowsNeedsAttention = [];
 
+        this.lastWorkspace;
+        this.currentWorkspace = global.workspace_manager.get_active_workspace();
+        this.nWorkspaces = global.workspace_manager.get_n_workspaces();
+
         this.updateActiveWorkspace();
         this.updateWorkspaceNames();
         this.updateWorkspaceWindows();
+
+        for (var i = 0; i < 12; i++) {
+            Me.settings.set(GNOME_KEYBINDINGS_SCHEMA_KEY, MOVE_TO_WORKSPACE_I_KEY + (i + 1), []);
+            Me.settings.set(GNOME_KEYBINDINGS_SCHEMA_KEY, SWITCH_TO_WORKSPACE_I_KEY + (i + 1), []);
+        }
     }
 
     destroy() {
@@ -71,34 +76,34 @@ var WorkspaceManager = class {
     addKeybindings() {
         const settings = Me.settings.get(KEYBINDINGS_SCHEMA_KEY);
 
-        for (let i = 1; i <= MAX_N_WORKSPACES; i++) {
+        for (let i = 0; i < MAX_N_WORKSPACES; i++) {
             this.addKeybinding(
-                SWITCH_TO_WORKSPACE_I_KEY + i,
+                GO_TO_WORKSPACE_I_KEY + (i + 1),
                 settings,
-                () => this.switchToWorkspace(i)
+                () => this.goToWorkspaceIndex(i)
             );
 
             this.addKeybinding(
-                MOVE_TO_WORKSPACE_I_KEY + i,
+                MOVE_WINDOW_TO_WORKSPACE_I_KEY + (i + 1),
                 settings,
-                () => this.moveFocusedWindowToWorkspace(i)
+                () => this.moveFocusedWindowToWorkspaceIndex(i)
             );
         }
 
         this.addKeybinding(
-            'switch-to-last-workspace',
+            'go-to-last-workspace',
             settings,
             () => this.goToLastWorkspace()
         );
 
         this.addKeybinding(
-            'switch-to-previous-workspace',
+            'go-to-previous-workspace',
             settings,
             () => this.goToPreviousWorkspace()
         );
 
         this.addKeybinding(
-            'switch-to-next-workspace',
+            'go-to-next-workspace',
             settings,
             () => this.goToNextWorkspace()
         );
@@ -168,8 +173,8 @@ var WorkspaceManager = class {
 
     windowNeedsFocus(window) {
         if (this.windowsNeedsAttention.includes(window)
-            || !helper.isWindowOnOneWorkspace(window)
-            || helper.getFocusedWindow() === window) {
+            || !isWindowOnOneWorkspace(window)
+            || getFocusedWindow() === window) {
             return;
         }
 
@@ -179,7 +184,7 @@ var WorkspaceManager = class {
     }
 
     updateFocusedWindow(workspace) {
-        const focusedWindow = helper.getFocusedWindow(workspace);
+        const focusedWindow = getFocusedWindow(workspace);
         if (!focusedWindow) return;
 
         const index = this.windowsNeedsAttention.indexOf(focusedWindow);
@@ -198,7 +203,7 @@ var WorkspaceManager = class {
     }
 
     handleCreatedWorkspaceIndex(index) {
-        const workspace = helper.getWorkspace(index);
+        const workspace = getWorkspace(index);
 
         workspace.connect('window-added', () => this.updateWorkspaceWindows());
         workspace.connect('window-removed', () => this.updateWorkspaceWindows());
@@ -225,36 +230,31 @@ var WorkspaceManager = class {
         this.windows = [];
 
         for (let index = 0; index < this.nWorkspaces; index++) {
-            const workspace = helper.getWorkspace(index);
+            const workspace = getWorkspace(index);
 
-            this.windows[index] = helper.getWindows(workspace);
+            this.windows[index] = getWindows(workspace);
         }
 
         this.update();
     }
 
-    switchToWorkspace(index) {
+    goToWorkspaceIndex(index) {
         if (this.currentWorkspace.index() === index) {
             Main.overview.toggle();
+
+            return
         }
 
-        helper.getWorkspace(index);
+        goToWorkspaceIndex(index);
     }
 
-    moveWindowToWorkspace(window, index) {
-        window.change_workspace_by_index(wsIndex, true);
-
-        global.display.get_workspace_manager().get_workspace_by_index(index)
-            .activate_with_focus(window, global.get_current_time());
-    }
-
-    moveFocusedWindowToWorkspace() {
-        this.moveWindowToWorkspace(helper.getFocusedWindow());
+    moveFocusedWindowToWorkspaceIndex(index) {
+        moveWindowToWorkspaceIndex(getFocusedWindow(), index);
     }
 
     goToLastWorkspace() {
         if (this.lastWorkspace) {
-            helper.goToWorkspace(this.lastWorkspace);
+            goToWorkspace(this.lastWorkspace);
 
             return true;
         }
@@ -267,7 +267,7 @@ var WorkspaceManager = class {
         const goToIndex = (index - 1) % this.nWorkspaces;
 
         if (Me.settings.get(WORKSPACE_SCHEMA_KEY, 'cycle-focus-workspaces') || goToIndex < index) {
-            helper.goToWorkspace(helper.getWorkspace(goToIndex));
+            goToWorkspace(getWorkspace(goToIndex));
 
             return true;
         }
@@ -280,7 +280,7 @@ var WorkspaceManager = class {
         const goToIndex = (index + 1) % this.nWorkspaces;
 
         if (Me.settings.get(WORKSPACE_SCHEMA_KEY, 'cycle-focus-workspaces') || goToIndex > index) {
-            helper.goToWorkspace(helper.getWorkspace(goToIndex));
+            goToWorkspace(getWorkspace(goToIndex));
 
             return true;
         }

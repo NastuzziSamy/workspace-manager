@@ -3,312 +3,320 @@
     <schema id="org.gnome.shell.extensions.managers.workspace.keybindings"
         path="/org/gnome/shell/extensions/managers/workspace/keybindings/">
 
-        <key type="as" name="switch-to-last-workspace">
+        <key type="as" name="go-to-last-workspace">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to last workspace</summary>
+            <summary>GO to last workspace</summary>
             <description>
                 Go to last focused workspace
             </description>
         </key>
 
-        <key type="as" name="switch-to-previous-workspace">
+        <key type="as" name="go-to-previous-workspace">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to previous workspace</summary>
+            <summary>GO to previous workspace</summary>
             <description>
                 Go to workspace before the current one
             </description>
         </key>
 
-        <key type="as" name="switch-to-next-workspace">
+        <key type="as" name="go-to-next-workspace">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to next workspace</summary>
+            <summary>GO to next workspace</summary>
             <description>
                 Go to workspace after the current one
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-2">
+        <key type="as" name="go-to-workspace-1">
+            <default><![CDATA[['<Super>1']]]></default>
+            <summary>GO to workspace 1</summary>
+            <description>
+                Go to workspace 1
+            </description>
+        </key>
+
+        <key type="as" name="go-to-workspace-2">
             <default><![CDATA[['<Super>2']]]></default>
-            <summary>Switch to workspace 2</summary>
+            <summary>GO to workspace 2</summary>
             <description>
                 Go to workspace 2
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-3">
+        <key type="as" name="go-to-workspace-3">
             <default><![CDATA[['<Super>3']]]></default>
-            <summary>Switch to workspace 3</summary>
+            <summary>GO to workspace 3</summary>
             <description>
                 Go to workspace 3
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-4">
+        <key type="as" name="go-to-workspace-4">
             <default><![CDATA[['<Super>4']]]></default>
-            <summary>Switch to workspace 4</summary>
+            <summary>GO to workspace 4</summary>
             <description>
                 Go to workspace 4
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-5">
+        <key type="as" name="go-to-workspace-5">
             <default><![CDATA[['<Super>5']]]></default>
-            <summary>Switch to workspace 5</summary>
+            <summary>GO to workspace 5</summary>
             <description>
                 Go to workspace 5
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-6">
+        <key type="as" name="go-to-workspace-6">
             <default><![CDATA[['<Super>6']]]></default>
-            <summary>Switch to workspace 6</summary>
+            <summary>GO to workspace 6</summary>
             <description>
                 Go to workspace 6
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-7">
+        <key type="as" name="go-to-workspace-7">
             <default><![CDATA[['<Super>7']]]></default>
-            <summary>Switch to workspace 7</summary>
+            <summary>GO to workspace 7</summary>
             <description>
                 Go to workspace 7
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-8">
+        <key type="as" name="go-to-workspace-8">
             <default><![CDATA[['<Super>8']]]></default>
-            <summary>Switch to workspace 8</summary>
+            <summary>GO to workspace 8</summary>
             <description>
                 Go to workspace 8
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-9">
+        <key type="as" name="go-to-workspace-9">
             <default><![CDATA[['<Super>9']]]></default>
-            <summary>Switch to workspace 9</summary>
+            <summary>GO to workspace 9</summary>
             <description>
                 Go to workspace 9
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-10">
+        <key type="as" name="go-to-workspace-10">
             <default><![CDATA[['<Super>0']]]></default>
-            <summary>Switch to workspace 10</summary>
+            <summary>GO to workspace 10</summary>
             <description>
                 Go to workspace 10
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-11">
+        <key type="as" name="go-to-workspace-11">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 11</summary>
+            <summary>GO to workspace 11</summary>
             <description>
                 Go to workspace 11
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-12">
+        <key type="as" name="go-to-workspace-12">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 12</summary>
+            <summary>GO to workspace 12</summary>
             <description>
                 Go to workspace 12
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-13">
+        <key type="as" name="go-to-workspace-13">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 13</summary>
+            <summary>GO to workspace 13</summary>
             <description>
                 Go to workspace 13
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-14">
+        <key type="as" name="go-to-workspace-14">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 14</summary>
+            <summary>GO to workspace 14</summary>
             <description>
                 Go to workspace 14
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-15">
+        <key type="as" name="go-to-workspace-15">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 15</summary>
+            <summary>GO to workspace 15</summary>
             <description>
                 Go to workspace 15
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-16">
+        <key type="as" name="go-to-workspace-16">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 16</summary>
+            <summary>GO to workspace 16</summary>
             <description>
                 Go to workspace 16
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-17">
+        <key type="as" name="go-to-workspace-17">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 17</summary>
+            <summary>GO to workspace 17</summary>
             <description>
                 Go to workspace 17
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-18">
+        <key type="as" name="go-to-workspace-18">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 18</summary>
+            <summary>GO to workspace 18</summary>
             <description>
                 Go to workspace 18
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-19">
+        <key type="as" name="go-to-workspace-19">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 19</summary>
+            <summary>GO to workspace 19</summary>
             <description>
                 Go to workspace 19
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-20">
+        <key type="as" name="go-to-workspace-20">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 20</summary>
+            <summary>GO to workspace 20</summary>
             <description>
                 Go to workspace 20
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-21">
+        <key type="as" name="go-to-workspace-21">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 21</summary>
+            <summary>GO to workspace 21</summary>
             <description>
                 Go to workspace 21
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-22">
+        <key type="as" name="go-to-workspace-22">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 22</summary>
+            <summary>GO to workspace 22</summary>
             <description>
                 Go to workspace 22
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-23">
+        <key type="as" name="go-to-workspace-23">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 23</summary>
+            <summary>GO to workspace 23</summary>
             <description>
                 Go to workspace 23
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-24">
+        <key type="as" name="go-to-workspace-24">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 24</summary>
+            <summary>GO to workspace 24</summary>
             <description>
                 Go to workspace 24
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-25">
+        <key type="as" name="go-to-workspace-25">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 25</summary>
+            <summary>GO to workspace 25</summary>
             <description>
                 Go to workspace 25
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-26">
+        <key type="as" name="go-to-workspace-26">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 26</summary>
+            <summary>GO to workspace 26</summary>
             <description>
                 Go to workspace 26
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-27">
+        <key type="as" name="go-to-workspace-27">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 27</summary>
+            <summary>GO to workspace 27</summary>
             <description>
                 Go to workspace 27
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-28">
+        <key type="as" name="go-to-workspace-28">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 28</summary>
+            <summary>GO to workspace 28</summary>
             <description>
                 Go to workspace 28
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-29">
+        <key type="as" name="go-to-workspace-29">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 29</summary>
+            <summary>GO to workspace 29</summary>
             <description>
                 Go to workspace 29
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-30">
+        <key type="as" name="go-to-workspace-30">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 30</summary>
+            <summary>GO to workspace 30</summary>
             <description>
                 Go to workspace 30
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-31">
+        <key type="as" name="go-to-workspace-31">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 31</summary>
+            <summary>GO to workspace 31</summary>
             <description>
                 Go to workspace 31
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-32">
+        <key type="as" name="go-to-workspace-32">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 32</summary>
+            <summary>GO to workspace 32</summary>
             <description>
                 Go to workspace 32
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-33">
+        <key type="as" name="go-to-workspace-33">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 33</summary>
+            <summary>GO to workspace 33</summary>
             <description>
                 Go to workspace 33
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-34">
+        <key type="as" name="go-to-workspace-34">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 34</summary>
+            <summary>GO to workspace 34</summary>
             <description>
                 Go to workspace 34
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-35">
+        <key type="as" name="go-to-workspace-35">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 35</summary>
+            <summary>GO to workspace 35</summary>
             <description>
                 Go to workspace 35
             </description>
         </key>
 
-        <key type="as" name="switch-to-workspace-36">
+        <key type="as" name="go-to-workspace-36">
             <default><![CDATA[[]]]></default>
-            <summary>Switch to workspace 36</summary>
+            <summary>GO to workspace 36</summary>
             <description>
                 Go to workspace 36
             </description>
         </key>
 
 
-        <key type="as" name="move-to-workspace-1">
+        <key type="as" name="move-window-to-workspace-1">
             <default><![CDATA[['<Super><Shift>1']]]></default>
             <summary>Move window to workspace 1</summary>
             <description>
@@ -316,7 +324,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-2">
+        <key type="as" name="move-window-to-workspace-2">
             <default><![CDATA[['<Super><Shift>2']]]></default>
             <summary>Move window to workspace 2</summary>
             <description>
@@ -324,7 +332,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-3">
+        <key type="as" name="move-window-to-workspace-3">
             <default><![CDATA[['<Super><Shift>3']]]></default>
             <summary>Move window to workspace 3</summary>
             <description>
@@ -332,7 +340,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-4">
+        <key type="as" name="move-window-to-workspace-4">
             <default><![CDATA[['<Super><Shift>4']]]></default>
             <summary>Move window to workspace 4</summary>
             <description>
@@ -340,7 +348,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-5">
+        <key type="as" name="move-window-to-workspace-5">
             <default><![CDATA[['<Super><Shift>5']]]></default>
             <summary>Move window to workspace 5</summary>
             <description>
@@ -348,7 +356,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-6">
+        <key type="as" name="move-window-to-workspace-6">
             <default><![CDATA[['<Super><Shift>6']]]></default>
             <summary>Move window to workspace 6</summary>
             <description>
@@ -356,7 +364,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-7">
+        <key type="as" name="move-window-to-workspace-7">
             <default><![CDATA[['<Super><Shift>7']]]></default>
             <summary>Move window to workspace 7</summary>
             <description>
@@ -364,7 +372,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-8">
+        <key type="as" name="move-window-to-workspace-8">
             <default><![CDATA[['<Super><Shift>8']]]></default>
             <summary>Move window to workspace 8</summary>
             <description>
@@ -372,7 +380,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-9">
+        <key type="as" name="move-window-to-workspace-9">
             <default><![CDATA[['<Super><Shift>9']]]></default>
             <summary>Move window to workspace 9</summary>
             <description>
@@ -380,7 +388,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-10">
+        <key type="as" name="move-window-to-workspace-10">
             <default><![CDATA[['<Super><Shift>0']]]></default>
             <summary>Move window to workspace 10</summary>
             <description>
@@ -388,7 +396,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-11">
+        <key type="as" name="move-window-to-workspace-11">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 11</summary>
             <description>
@@ -396,7 +404,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-12">
+        <key type="as" name="move-window-to-workspace-12">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 12</summary>
             <description>
@@ -404,7 +412,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-13">
+        <key type="as" name="move-window-to-workspace-13">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 13</summary>
             <description>
@@ -412,7 +420,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-14">
+        <key type="as" name="move-window-to-workspace-14">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 14</summary>
             <description>
@@ -420,7 +428,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-15">
+        <key type="as" name="move-window-to-workspace-15">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 15</summary>
             <description>
@@ -428,7 +436,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-16">
+        <key type="as" name="move-window-to-workspace-16">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 16</summary>
             <description>
@@ -436,7 +444,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-17">
+        <key type="as" name="move-window-to-workspace-17">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 17</summary>
             <description>
@@ -444,7 +452,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-18">
+        <key type="as" name="move-window-to-workspace-18">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 18</summary>
             <description>
@@ -452,7 +460,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-19">
+        <key type="as" name="move-window-to-workspace-19">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 19</summary>
             <description>
@@ -460,7 +468,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-20">
+        <key type="as" name="move-window-to-workspace-20">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 20</summary>
             <description>
@@ -468,7 +476,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-21">
+        <key type="as" name="move-window-to-workspace-21">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 21</summary>
             <description>
@@ -476,7 +484,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-22">
+        <key type="as" name="move-window-to-workspace-22">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 22</summary>
             <description>
@@ -484,7 +492,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-23">
+        <key type="as" name="move-window-to-workspace-23">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 23</summary>
             <description>
@@ -492,7 +500,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-24">
+        <key type="as" name="move-window-to-workspace-24">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 24</summary>
             <description>
@@ -500,7 +508,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-25">
+        <key type="as" name="move-window-to-workspace-25">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 25</summary>
             <description>
@@ -508,7 +516,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-26">
+        <key type="as" name="move-window-to-workspace-26">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 26</summary>
             <description>
@@ -516,7 +524,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-27">
+        <key type="as" name="move-window-to-workspace-27">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 27</summary>
             <description>
@@ -524,7 +532,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-28">
+        <key type="as" name="move-window-to-workspace-28">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 28</summary>
             <description>
@@ -532,7 +540,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-29">
+        <key type="as" name="move-window-to-workspace-29">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 29</summary>
             <description>
@@ -540,7 +548,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-30">
+        <key type="as" name="move-window-to-workspace-30">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 30</summary>
             <description>
@@ -548,7 +556,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-31">
+        <key type="as" name="move-window-to-workspace-31">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 31</summary>
             <description>
@@ -556,7 +564,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-32">
+        <key type="as" name="move-window-to-workspace-32">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 32</summary>
             <description>
@@ -564,7 +572,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-33">
+        <key type="as" name="move-window-to-workspace-33">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 33</summary>
             <description>
@@ -572,7 +580,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-34">
+        <key type="as" name="move-window-to-workspace-34">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 34</summary>
             <description>
@@ -580,7 +588,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-35">
+        <key type="as" name="move-window-to-workspace-35">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 35</summary>
             <description>
@@ -588,7 +596,7 @@
             </description>
         </key>
 
-        <key type="as" name="move-to-workspace-36">
+        <key type="as" name="move-window-to-workspace-36">
             <default><![CDATA[[]]]></default>
             <summary>Move window to workspace 36</summary>
             <description>

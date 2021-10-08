@@ -56,7 +56,7 @@ var KeybindingMixin = {
     keybindings: [],
 
     addKeybinding(name, settings, callback,
-                  actionMode=Shell.ActionMode.NORMAL || Shell.ActionMode.OVERVIEW,
+                  actionMode=Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
                   flags=Meta.KeyBindingFlags.NONE) {
         Main.wm.addKeybinding(name, settings, flags, actionMode, callback);
 

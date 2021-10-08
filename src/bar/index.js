@@ -229,7 +229,7 @@ var WorkspacesBar = GObject.registerClass(
                         this.menu.toggle();
                     }
 
-                    global.managers.workspace.switchToWorkspace(index);
+                    global.managers.workspace.goToWorkspaceIndex(index);
 
                     return Clutter.EVENT_STOP;
             }
@@ -237,10 +237,10 @@ var WorkspacesBar = GObject.registerClass(
 
         selectNextWs(previous) {
             if (previous) {
-                return global.managers.workspace.switchToWorkspace(this.activeWsIndex === 0 ? (this.wsCount - 1) : (this.activeWsIndex - 1));
+                return global.managers.workspace.goToWorkspaceIndex(this.activeWsIndex === 0 ? (this.wsCount - 1) : (this.activeWsIndex - 1));
             }
 
-            global.managers.workspace.switchToWorkspace((this.activeWsIndex + 1) % this.wsCount);
+            global.managers.workspace.goToWorkspaceIndex((this.activeWsIndex + 1) % this.wsCount);
         }
 
         getGlobalPosition() {
@@ -286,10 +286,10 @@ var WorkspacesBar = GObject.registerClass(
         }
 
         moveActiveGrabbedWindow(window) {
-            const wsIndex = this.getWorkspaceIndexUnderCursor();
+            const index = this.getWorkspaceIndexUnderCursor();
 
-            if (wsIndex >= 0) {
-                global.managers.workspace.moveWindowToWorkspace(window, wsIndex);
+            if (index >= 0) {
+                global.managers.workspace.moveWindowToWorkspace(window, index);
             }
         }
     }

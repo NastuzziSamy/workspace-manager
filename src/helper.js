@@ -1,4 +1,5 @@
 const { Shell } = imports.gi;
+const Main = imports.ui.main;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 
 const { WORKSPACE_APPS } = Me.imports.src.consts;
@@ -53,7 +54,11 @@ var getFocusedWindow = (workspace=null) => {
 };
 
 
-var goToWorkspace = (workspace) => workspace.activate(global.get_current_time());
+var goToWorkspaceIndex = (index) => Main.wm._showWorkspaceSwitcher(global.display, null, { get_name: () => 'switch-to-workspace-' + (index + 1)});
+
+var moveWindowToWorkspaceIndex = (window, index) => {
+    Main.wm._showWorkspaceSwitcher(global.display, window, { get_name: () => 'move-to-workspace-' + (index + 1)});
+}
 
 var getWorkspace = (index) => global.workspace_manager.get_workspace_by_index(index);
 
