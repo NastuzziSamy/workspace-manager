@@ -21,6 +21,20 @@ var WorkspaceManager = class {
         this.addKeybindings();
     }
 
+    reset() {
+        this.lastWorkspace;
+        this.currentWorkspace = global.workspace_manager.get_active_workspace();
+        this.nWorkspaces = global.workspace_manager.get_n_workspaces();
+
+        this.windows = [];
+        this.names = [];
+        this.windowsNeedsAttention = [];
+
+        this.updateActiveWorkspace();
+        this.updateWorkspaceNames();
+        this.updateWorkspaceWindows();
+    }
+
     destroy() {
         this.removeBar();
 
@@ -39,7 +53,7 @@ var WorkspaceManager = class {
 
         this.connectSignal(global.display, 'notify::focus-window', () => this.updateFocusedWindow());
         this.connectSignal(global.workspace_manager, 'workspace-added', (_, index) => this.handleCreatedWorkspaceIndex(index));
-        this.connectSignal(global.workspace_manager, 'notify::n-workspaces', () => this.update());
+        this.connectSignal(global.workspace_manager, 'notify::n-workspaces', () => this.updateNWorkspaces());
         this.connectSignal(global.workspace_manager, 'active-workspace-changed', () => this.updateActiveWorkspace());
         this.connectSignal(global.window_manager, 'size-changed', () => this.update());
     }
@@ -52,38 +66,6 @@ var WorkspaceManager = class {
 
         Me.settings.follow(WORKSPACE_SCHEMA_KEY, 'disable-attention-notification',
             () => this.disableAttentionHandler(), () => this.enableAttentionHandler());
-    }
-
-    reset() {
-        this.windows = [];
-        this.names = [];
-        this.windowsNeedsAttention = [];
-
-        this.updateActiveWorkspace();
-        this.updateWorkspaceNames();
-        this.updateWorkspaceWindows();
-    }
-
-    update() {
-        if (this.bar) {
-            this.bar.update();
-        }
-    }
-
-    addBar() {
-        this.bar = new WorkspacesBar();
-
-        Main.panel.addToStatusArea(this.bar.accessible_name, this.bar, 0, 'left');
-
-        Mainloop.idle_add(this.reset.bind(this));
-    }
-
-    removeBar() {
-        if (this.bar) {
-            this.bar.destroy();
-        }
-
-        this.bar = null;
     }
 
     addKeybindings() {
@@ -102,6 +84,52 @@ var WorkspaceManager = class {
                 () => this.moveFocusedWindowToWorkspace(i)
             );
         }
+
+        this.addKeybinding(
+            'switch-to-last-workspace',
+            settings,
+            () => this.goToLastWorkspace()
+        );
+
+        this.addKeybinding(
+            'switch-to-previous-workspace',
+            settings,
+            () => this.goToPreviousWorkspace()
+        );
+
+        this.addKeybinding(
+            'switch-to-next-workspace',
+            settings,
+            () => this.goToNextWorkspace()
+        );
+    }
+
+    update() {
+        if (this.bar) {
+            this.bar.update();
+        }
+    }
+
+    updateNWorkspaces() {
+        this.nWorkspaces = global.workspace_manager.get_n_workspaces();
+
+        this.update();
+    }
+
+    addBar() {
+        this.bar = new WorkspacesBar();
+
+        Main.panel.addToStatusArea(this.bar.accessible_name, this.bar, 0, 'left');
+
+        Mainloop.idle_add(this.reset.bind(this));
+    }
+
+    removeBar() {
+        if (this.bar) {
+            this.bar.destroy();
+        }
+
+        this.bar = null;
     }
 
     disableAttentionHandler() {
@@ -170,7 +198,7 @@ var WorkspaceManager = class {
     }
 
     handleCreatedWorkspaceIndex(index) {
-        const workspace = global.workspace_manager.get_workspace_by_index(index);
+        const workspace = helper.getWorkspace(index);
 
         workspace.connect('window-added', () => this.updateWorkspaceWindows());
         workspace.connect('window-removed', () => this.updateWorkspaceWindows());
@@ -179,9 +207,10 @@ var WorkspaceManager = class {
     }
 
     updateActiveWorkspace() {
-        const workspace = global.workspace_manager.get_active_workspace();
+        this.lastWorkspace = this.currentWorkspace;
+        this.currentWorkspace = global.workspace_manager.get_active_workspace();
 
-        this.updateFocusedWindow(workspace);
+        this.updateFocusedWindow(this.currentWorkspace);
 
         this.update();
     }
@@ -195,8 +224,8 @@ var WorkspaceManager = class {
     updateWorkspaceWindows() {
         this.windows = [];
 
-        for (let index = 0; index < global.workspace_manager.get_n_workspaces(); index++) {
-            const workspace = global.workspace_manager.get_workspace_by_index(index);
+        for (let index = 0; index < this.nWorkspaces; index++) {
+            const workspace = helper.getWorkspace(index);
 
             this.windows[index] = helper.getWindows(workspace);
         }
@@ -205,11 +234,11 @@ var WorkspaceManager = class {
     }
 
     switchToWorkspace(index) {
-        if (global.workspace_manager.get_active_workspace_index() === index) {
+        if (this.currentWorkspace.index() === index) {
             Main.overview.toggle();
         }
 
-        global.workspace_manager.get_workspace_by_index(index).activate(global.get_current_time());
+        helper.getWorkspace(index);
     }
 
     moveWindowToWorkspace(window, index) {
@@ -221,6 +250,42 @@ var WorkspaceManager = class {
 
     moveFocusedWindowToWorkspace() {
         this.moveWindowToWorkspace(helper.getFocusedWindow());
+    }
+
+    goToLastWorkspace() {
+        if (this.lastWorkspace) {
+            helper.goToWorkspace(this.lastWorkspace);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    goToPreviousWorkspace() {
+        const index = this.currentWorkspace.index();
+        const goToIndex = (index - 1) % this.nWorkspaces;
+
+        if (Me.settings.get(WORKSPACE_SCHEMA_KEY, 'cycle-focus-workspaces') || goToIndex < index) {
+            helper.goToWorkspace(helper.getWorkspace(goToIndex));
+
+            return true;
+        }
+
+        return false;
+    }
+
+    goToNextWorkspace() {
+        const index = this.currentWorkspace.index();
+        const goToIndex = (index + 1) % this.nWorkspaces;
+
+        if (Me.settings.get(WORKSPACE_SCHEMA_KEY, 'cycle-focus-workspaces') || goToIndex > index) {
+            helper.goToWorkspace(helper.getWorkspace(goToIndex));
+
+            return true;
+        }
+
+        return false;
     }
 };
 

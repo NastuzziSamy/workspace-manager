@@ -3,11 +3,27 @@
     <schema id="org.gnome.shell.extensions.managers.workspace.keybindings"
         path="/org/gnome/shell/extensions/managers/workspace/keybindings/">
 
-        <key type="as" name="switch-to-workspace-1">
-            <default><![CDATA[['<Super>1']]]></default>
-            <summary>Switch to workspace 1</summary>
+        <key type="as" name="switch-to-last-workspace">
+            <default><![CDATA[[]]]></default>
+            <summary>Switch to last workspace</summary>
             <description>
-                Go to workspace 1
+                Go to last focused workspace
+            </description>
+        </key>
+
+        <key type="as" name="switch-to-previous-workspace">
+            <default><![CDATA[[]]]></default>
+            <summary>Switch to previous workspace</summary>
+            <description>
+                Go to workspace before the current one
+            </description>
+        </key>
+
+        <key type="as" name="switch-to-next-workspace">
+            <default><![CDATA[[]]]></default>
+            <summary>Switch to next workspace</summary>
+            <description>
+                Go to workspace after the current one
             </description>
         </key>
 

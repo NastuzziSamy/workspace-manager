@@ -21,10 +21,10 @@ var Extension = class {
     }
 
     loadSettings() {
-        this.settings = new Settings(SCHEMAS);
+        Me.settings = new Settings(SCHEMAS);
 
         for (const key in settings) {
-            this.settings.follow(WORKSPACE_SCHEMA_KEY, key, (value) => setSettings(key, value));
+            Me.settings.follow(WORKSPACE_SCHEMA_KEY, key, (value) => setSettings(key, value));
         }
     }
 

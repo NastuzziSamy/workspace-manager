@@ -54,6 +54,11 @@ var Settings = class {
             case 'b':
                 return variant.get_boolean();
 
+            case 's':
+                value = variant.get_string();
+
+                return value.slice(0, value.length - 3);
+
             case 'i':
                 return variant.get_int();
 

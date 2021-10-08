@@ -2,7 +2,7 @@
   "name": "Workspace Manager",
   "description": "Define workspace keybindings, workspace number...",
   "uuid": "workspace-manager@nastuzzisamy.github.com",
-  "settings-schema": "org.gnome.shell.extensions.managers",
+  "settings-schema": "org.gnome.shell.extensions.managers.workspace",
   "gettext-domain": "org.gnome.shell.extensions",
   "shell-version": [
     "40"

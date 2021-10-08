@@ -53,6 +53,10 @@ var getFocusedWindow = (workspace=null) => {
 };
 
 
+var goToWorkspace = (workspace) => workspace.activate(global.get_current_time());
+
+var getWorkspace = (index) => global.workspace_manager.get_workspace_by_index(index);
+
 var isWindowOnOneWorkspace = (window) => !window.is_always_on_all_workspaces() && !window.is_on_all_workspaces();
 
 var getWindows = (workspace) => {

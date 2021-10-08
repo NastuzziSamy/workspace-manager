@@ -27,6 +27,14 @@
             </description>
         </key>
 
+        <key type="b" name="cycle-focus-workspaces">
+            <default>true</default>
+            <summary>Cycle when focusing a new workspace</summary>
+            <description>
+                Always find a workspace to focus in the chosen direction
+            </description>
+        </key>
+
         <!-- <key type="as" name="bar-workspace-apps">
             <default><![CDATA[[]]]></default>
             <summary>App to start for each workspace</summary>
